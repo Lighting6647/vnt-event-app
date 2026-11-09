@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>5 Design Directions - Tour & Event App (Anti-AI Slop)</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@600;800&family=Prompt:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Prompt', sans-serif; }
+    .font-mono-tech { font-family: 'JetBrains Mono', monospace; }
+    .font-luxury { font-family: 'Cinzel', serif; }
+    .font-brutal { font-family: 'Space Grotesk', sans-serif; }
+    .ticket-notch {
+      position: relative;
+    }
+    .ticket-notch::before, .ticket-notch::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 24px;
+      height: 24px;
+      background-color: #0b0f19;
+      border-radius: 50%;
+      transform: translateY(-50%);
+    }
+    .ticket-notch::before { left: -12px; }
+    .ticket-notch::after { right: -12px; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8 antialiased selection:bg-amber-500 selection:text-slate-950">
+
+  <!-- Header -->
+  <header class="max-w-6xl mx-auto mb-10 text-center relative rounded-3xl bg-slate-900 border border-slate-800 p-8 shadow-2xl">
+    <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold tracking-wide uppercase mb-3">
+      🛡️ ZERO AI SLOP • 5 DISTINCT DESIGN THEMES
+    </div>
+    <h1 class="text-3xl md:text-5xl font-black text-white tracking-tight mb-3">
+      5 สไตล์งานดีไซน์ระดับโปร (เลือกใช้งานได้ทันที)
+    </h1>
+    <p class="text-slate-400 text-sm md:text-base max-w-3xl mx-auto leading-relaxed">
+      ตัดเกรเดียนท์สีม่วงสังเคราะห์และแสงฟุ้งไร้จุดหมายออกทั้งหมด ทุกสไตล์ถูกออกแบบอย่างมีคอนเซปต์ชัดเจน สวยงาม รองรับทั้งมือถือและจอโปรเจกเตอร์งานเลี้ยง
+    </p>
+  </header>
+
+  <!-- The 5 Design Showcases Grid -->
+  <main class="max-w-6xl mx-auto space-y-12">
+
+    <!-- ---------------------------------------------------- -->
+    <!-- DESIGN 1: SWISS AIRLINE BOARDING PASS -->
+    <!-- ---------------------------------------------------- -->
+    <section class="bg-stone-900 border border-stone-800 rounded-3xl p-6 md:p-8 space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-stone-800 pb-4">
+        <div>
+          <span class="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-stone-800 text-stone-300 border border-stone-700">
+            STYLE 01 • AIRLINE EDITORIAL
+          </span>
+          <h2 class="text-2xl font-black text-white mt-1">1. Swiss Airline Boarding Pass (ตั๋วสายการบินมินิมอล)</h2>
+          <p class="text-xs text-stone-400 mt-0.5">
+            ความคลาสสิกของ International Typographic Style • ตัวหนังสือคมชัด • ไร้เงาสังเคราะห์ • มีรอยปรุเจาะรูตั๋ว
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-4 h-4 rounded-full bg-stone-100 border border-black"></span>
+          <span class="w-4 h-4 rounded-full bg-stone-800 border border-stone-600"></span>
+          <span class="w-4 h-4 rounded-full bg-amber-500"></span>
+        </div>
+      </div>
+
+      <!-- Preview Mockup Card -->
+      <div class="max-w-md mx-auto bg-stone-950 border border-stone-800 rounded-2xl overflow-hidden shadow-2xl relative">
+        <!-- Top Boarding Pass Header -->
+        <div class="bg-stone-100 text-stone-950 p-4 flex items-center justify-between border-b-2 border-dashed border-stone-400">
+          <div>
+            <div class="text-[9px] font-mono-tech tracking-widest uppercase font-bold text-stone-600">COMPANY OUTING • BOARDING PASS</div>
+            <div class="text-lg font-black tracking-tight">TOUR-088 // SOMCHAI</div>
+          </div>
+          <div class="text-right">
+            <span class="bg-stone-950 text-white font-mono-tech text-[10px] px-2 py-1 font-bold">GATE: BUS 02</span>
+          </div>
+        </div>
+
+        <!-- Ticket Body -->
+        <div class="p-5 space-y-4 text-stone-200">
+          <div class="grid grid-cols-3 gap-2 border-b border-stone-800 pb-3 font-mono-tech text-xs">
+            <div>
+              <span class="text-[9px] text-stone-500 block">TEAM COLOR</span>
+              <strong class="text-amber-400 text-sm">YELLOW 04</strong>
+            </div>
+            <div>
+              <span class="text-[9px] text-stone-500 block">SEAT / BUS</span>
+              <strong class="text-stone-100 text-sm">BUS #2</strong>
+            </div>
+            <div>
+              <span class="text-[9px] text-stone-500 block">MEAL STATUS</span>
+              <strong class="text-emerald-400 text-sm">CLAIMED ✓</strong>
+            </div>
+          </div>
+
+          <!-- Barcode & QR Stamp -->
+          <div class="bg-white p-3 rounded flex items-center justify-between text-stone-950">
+            <div class="space-y-1">
+              <div class="text-[9px] font-mono-tech font-bold text-stone-600">BOARDING SECURITY QR</div>
+              <div class="text-xs font-mono font-bold tracking-widest">||||| | |||| || ||| |</div>
+              <div class="text-[8px] text-stone-500">AUTH TOKEN: 88-TH-2026</div>
+            </div>
+            <div class="w-16 h-16 bg-stone-950 rounded flex items-center justify-center text-white text-xs font-mono font-bold">
+              [ QR ]
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------- -->
+    <!-- DESIGN 2: LUXURY OCEAN & GOLD GALA -->
+    <!-- ---------------------------------------------------- -->
+    <section class="bg-[#080d1a] border border-[#d4af37]/30 rounded-3xl p-6 md:p-8 space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#d4af37]/20 pb-4">
+        <div>
+          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#d4af37]/20 text-[#d4af37] border border-[#d4af37]/40">
+            STYLE 02 • LUXURY RESORT GALA
+          </span>
+          <h2 class="text-2xl font-black text-white mt-1">2. Luxury Ocean & Champagne Gold (กาล่าโรงแรม 5 ดาว)</h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            หรูหรา ภูมิฐาน เหมาะกับงานเลี้ยงริมทะเลและโรงแรมหรู • สีกรมท่า Deep Navy (#080d1a) ตัดขอบทอง Hairline 1px
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-4 h-4 rounded-full bg-[#080d1a] border border-[#d4af37]"></span>
+          <span class="w-4 h-4 rounded-full bg-[#d4af37]"></span>
+          <span class="w-4 h-4 rounded-full bg-slate-800"></span>
+        </div>
+      </div>
+
+      <!-- Preview Mockup Card -->
+      <div class="max-w-md mx-auto bg-[#0b1324] border border-[#d4af37]/50 rounded-2xl p-6 shadow-2xl relative space-y-4">
+        <div class="flex items-center justify-between border-b border-[#d4af37]/20 pb-3">
+          <div>
+            <span class="text-[9px] tracking-widest text-[#d4af37] font-bold uppercase font-luxury">ROYAL GALA EVENING</span>
+            <h3 class="text-xl font-serif font-black text-white">คุณสมชาย ใจดีเจริญ</h3>
+            <span class="text-[10px] text-slate-400 font-mono">INVITATION NO. TOUR-088</span>
+          </div>
+          <div class="px-3 py-1 rounded-full text-[11px] font-bold bg-[#d4af37] text-slate-950 shadow-md">
+            ทีมสีเหลืองทอง
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div class="bg-[#060a14] p-3 rounded-xl border border-[#d4af37]/20">
+            <span class="text-[10px] text-slate-400 block">ยานพาหนะเดินทาง</span>
+            <strong class="text-sm font-bold text-amber-200 mt-0.5 block">รถบัสคันที่ 2</strong>
+            <span class="text-[9px] text-slate-500">ทะเบียน 30-8899</span>
+          </div>
+          <div class="bg-[#060a14] p-3 rounded-xl border border-[#d4af37]/20">
+            <span class="text-[10px] text-slate-400 block">สิทธิ์รับประทานอาหาร</span>
+            <strong class="text-sm font-bold text-emerald-400 mt-0.5 block">✓ รับเรียบร้อย</strong>
+            <span class="text-[9px] text-slate-500">12:15 น. (กันรับซ้ำ)</span>
+          </div>
+        </div>
+
+        <div class="bg-[#060a14] border border-[#d4af37]/40 p-3 rounded-xl flex items-center justify-between">
+          <div class="text-xs">
+            <div class="text-[#d4af37] font-bold">DIGITAL PASS QR</div>
+            <div class="text-[10px] text-slate-400">ยื่นให้บริกรหรือสตาฟประจำจุด</div>
+          </div>
+          <div class="w-14 h-14 bg-white rounded p-1 flex items-center justify-center text-slate-950 text-xs font-bold">
+            QR GOLD
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------- -->
+    <!-- DESIGN 3: NEO-BRUTALISM FESTIVAL POP -->
+    <!-- ---------------------------------------------------- -->
+    <section class="bg-amber-100 text-slate-950 border-4 border-black rounded-3xl p-6 md:p-8 space-y-6 shadow-[8px_8px_0px_#000]">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b-2 border-black pb-4">
+        <div>
+          <span class="px-2.5 py-0.5 rounded text-[10px] font-black bg-black text-white uppercase">
+            STYLE 03 • NEO-BRUTALISM POP
+          </span>
+          <h2 class="text-2xl font-black text-black mt-1">3. Festival & Neo-Brutalism (งานวัด & คาร์นิวัลโมเดิร์น)</h2>
+          <p class="text-xs text-slate-700 mt-0.5">
+            เส้นขอบดำหนา 2.5px • เงาแข็ง Hard Shadow • สีสันคู่ตรงข้ามสนุกสนาน • เหมาะกับงานสันทนาการสายเฮฮาพลังบวก
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-4 h-4 rounded-full bg-[#ffdd00] border-2 border-black"></span>
+          <span class="w-4 h-4 rounded-full bg-[#ff4d4d] border-2 border-black"></span>
+          <span class="w-4 h-4 rounded-full bg-[#00e5ff] border-2 border-black"></span>
+        </div>
+      </div>
+
+      <!-- Preview Mockup Card -->
+      <div class="max-w-md mx-auto bg-white border-4 border-black rounded-2xl p-5 shadow-[6px_6px_0px_#000] space-y-4">
+        <div class="flex items-center justify-between border-b-2 border-black pb-3">
+          <div>
+            <div class="bg-black text-white text-[9px] font-black px-2 py-0.5 inline-block">TOUR 2026 TICKET</div>
+            <h3 class="text-2xl font-black text-black mt-1 font-brutal">สมชาย ใจดีเจริญ</h3>
+            <span class="text-xs font-bold text-slate-600">ID: TOUR-088</span>
+          </div>
+          <div class="bg-[#ffdd00] border-2 border-black px-3 py-1 font-black text-xs shadow-[2px_2px_0px_#000]">
+            ทีมสีเหลือง
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div class="bg-[#ffea79] border-2 border-black p-3 rounded-lg shadow-[2px_2px_0px_#000]">
+            <span class="font-bold text-[10px]">ขึ้นรถบัส:</span>
+            <div class="text-lg font-black">คันที่ 2</div>
+          </div>
+          <div class="bg-[#86efac] border-2 border-black p-3 rounded-lg shadow-[2px_2px_0px_#000]">
+            <span class="font-bold text-[10px]">สถานะอาหาร:</span>
+            <div class="text-base font-black text-emerald-950">รับแล้ว ✓</div>
+          </div>
+        </div>
+
+        <div class="bg-black text-white p-3 rounded-xl flex items-center justify-between">
+          <div class="text-xs font-bold">
+            <div>SCAN FOR SCORE</div>
+            <div class="text-[10px] text-yellow-300">สะสมแต้มลุ้นสล็อตรางวัล</div>
+          </div>
+          <div class="w-14 h-14 bg-white text-black font-black text-xs flex items-center justify-center border-2 border-yellow-400">
+            [ QR ]
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------- -->
+    <!-- DESIGN 4: CYBERPUNK TACTICAL HUD -->
+    <!-- ---------------------------------------------------- -->
+    <section class="bg-[#030712] border border-emerald-500/40 rounded-3xl p-6 md:p-8 space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-emerald-500/30 pb-4">
+        <div>
+          <span class="px-2.5 py-0.5 rounded text-[10px] font-mono-tech font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+            STYLE 04 • TACTICAL CYBER HUD
+          </span>
+          <h2 class="text-2xl font-black text-emerald-400 mt-1 font-mono-tech">4. Cyberpunk Tactical HUD (คอนโซลยาน & ปาร์ตี้ EDM)</h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            มืดสนิท OLED Pitch Black • เส้นกริดเรดาร์ • มอนิเตอร์ดิจิทัล • จอจับรางวัลสไตล์ Matrix Hacker
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-4 h-4 rounded-full bg-black border border-emerald-500"></span>
+          <span class="w-4 h-4 rounded-full bg-emerald-500"></span>
+          <span class="w-4 h-4 rounded-full bg-cyan-400"></span>
+        </div>
+      </div>
+
+      <!-- Preview Mockup Card -->
+      <div class="max-w-md mx-auto bg-[#080e1a] border border-emerald-500/60 rounded-xl p-5 shadow-none space-y-4 font-mono-tech">
+        <div class="flex items-center justify-between border-b border-emerald-500/30 pb-3">
+          <div>
+            <div class="text-[9px] text-emerald-500 tracking-widest">[ SYSTEM PASS: ACTIVE ]</div>
+            <h3 class="text-xl font-bold text-white mt-0.5">SOMCHAI J.</h3>
+            <span class="text-xs text-emerald-400/80">HEX-UID: 0xTOUR088</span>
+          </div>
+          <div class="px-3 py-1 rounded bg-yellow-400 text-black text-xs font-bold">
+            TEAM_YELLOW
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div class="bg-black/80 border border-emerald-500/30 p-2.5 rounded">
+            <span class="text-[9px] text-slate-400 block">// TRANSPORT_UNIT</span>
+            <span class="text-amber-300 font-bold">VEHICLE_02</span>
+          </div>
+          <div class="bg-black/80 border border-emerald-500/30 p-2.5 rounded">
+            <span class="text-[9px] text-slate-400 block">// RATION_CHECK</span>
+            <span class="text-emerald-400 font-bold">CLAIMED (12:15)</span>
+          </div>
+        </div>
+
+        <div class="bg-black border border-emerald-500/50 p-3 rounded flex items-center justify-between">
+          <div>
+            <div class="text-xs text-emerald-400">RADAR MATRIX QR</div>
+            <div class="text-[9px] text-slate-400">SYNC_STATUS: 100% SECURE</div>
+          </div>
+          <div class="w-14 h-14 bg-emerald-500 text-black font-bold text-xs flex items-center justify-center">
+            [ HUD ]
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------- -->
+    <!-- DESIGN 5: OUTDOOR CAMP & FIELD PASSPORT -->
+    <!-- ---------------------------------------------------- -->
+    <section class="bg-[#121c17] border border-[#374f44] rounded-3xl p-6 md:p-8 space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#374f44] pb-4">
+        <div>
+          <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-[#d97706]/20 text-[#d97706] border border-[#d97706]/40">
+            STYLE 05 • FIELD PASSPORT & GLAMPING
+          </span>
+          <h2 class="text-2xl font-black text-stone-100 mt-1">5. Outdoor Camp & Field Passport (แคมป์ปิ้ง & ธรรมชาติ)</h2>
+          <p class="text-xs text-stone-400 mt-0.5">
+            แรงบันดาลใจจาก Patagonia & ตราประทับพาสปอร์ตอุทยาน • สีเขียวป่าสน Forest Pine (#121c17) & ดินเผา Terracotta
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-4 h-4 rounded-full bg-[#121c17] border border-stone-500"></span>
+          <span class="w-4 h-4 rounded-full bg-[#374f44]"></span>
+          <span class="w-4 h-4 rounded-full bg-[#d97706]"></span>
+        </div>
+      </div>
+
+      <!-- Preview Mockup Card -->
+      <div class="max-w-md mx-auto bg-[#182620] border-2 border-[#374f44] rounded-2xl p-6 shadow-xl space-y-4">
+        <div class="flex items-center justify-between border-b border-[#374f44] pb-3">
+          <div>
+            <span class="text-[9px] tracking-widest text-amber-500 font-bold uppercase">OUTDOOR EXPEDITION PASS</span>
+            <h3 class="text-xl font-bold text-stone-100">สมชาย ใจดีเจริญ</h3>
+            <span class="text-xs text-stone-400">PASSPORT: TOUR-088</span>
+          </div>
+          <div class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+            ทีมสีเหลืองไพร
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div class="bg-[#101915] p-3 rounded-xl border border-[#374f44]">
+            <span class="text-[10px] text-stone-400 block">คาราวานรถคันที่</span>
+            <strong class="text-sm font-bold text-amber-300 mt-0.5 block">คันที่ 2 (30-8899)</strong>
+          </div>
+          <div class="bg-[#101915] p-3 rounded-xl border border-[#374f44]">
+            <span class="text-[10px] text-stone-400 block">เสบียงอาหาร</span>
+            <strong class="text-sm font-bold text-emerald-400 mt-0.5 block">✓ ตรวจรับแล้ว</strong>
+          </div>
+        </div>
+
+        <div class="bg-[#101915] border border-[#374f44] p-3 rounded-xl flex items-center justify-between">
+          <div class="text-xs">
+            <div class="text-stone-300 font-bold">CAMP ENTRY QR STAMP</div>
+            <div class="text-[10px] text-stone-500">สแกนรับแต้มกิจกรรมแคมป์</div>
+          </div>
+          <div class="w-14 h-14 bg-stone-200 text-stone-900 rounded p-1 flex items-center justify-center text-xs font-bold">
+            [ CAMP ]
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</body>
+</html>

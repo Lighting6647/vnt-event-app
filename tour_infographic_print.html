@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>Tour & Event App - Infographic Document</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 8mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #0b0f19;
+      color: #f1f5f9;
+      font-size: 13px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .no-print {
+      display: flex;
+    }
+
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      body {
+        background-color: #0b0f19 !important;
+      }
+      .page {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+      }
+    }
+
+    .page {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 16px;
+      position: relative;
+    }
+
+    /* Print action bar */
+    .action-bar {
+      max-width: 820px;
+      margin: 12px auto 0 auto;
+      padding: 12px 18px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-print {
+      background: #f59e0b;
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+      transition: all 0.2s;
+    }
+    .btn-print:hover {
+      background: #fbbf24;
+      transform: translateY(-1px);
+    }
+
+    /* Header */
+    .header-card {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #0f172a 100%);
+      border: 1.5px solid #6366f1;
+      border-radius: 16px;
+      padding: 16px 22px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
+    }
+
+    .badge-pill {
+      display: inline-block;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.5);
+      color: #fbbf24;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .header-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin: 0 0 4px 0;
+      background: linear-gradient(90deg, #fef08a, #ffffff, #f59e0b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+
+    .header-sub {
+      color: #cbd5e1;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 0;
+      font-weight: 400;
+    }
+
+    /* Section Titles */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .section-num {
+      width: 24px;
+      height: 24px;
+      background: #f59e0b;
+      color: #0f172a;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .section-h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0;
+    }
+
+    .section-desc {
+      font-size: 11px;
+      color: #94a3b8;
+      margin: 0;
+    }
+
+    /* Grid Layouts */
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .card {
+      background: #111827;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 6px 0 2px 0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .card-badge {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .list-items {
+      margin: 6px 0 0 0;
+      padding: 0;
+      list-style: none;
+      font-size: 11px;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .list-items li {
+      margin-bottom: 3px;
+      padding-left: 14px;
+      position: relative;
+    }
+
+    .list-items li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: #f59e0b;
+      font-size: 10px;
+      font-weight: bold;
+    }
+
+    /* Timeline Steps */
+    .timeline-container {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 12px;
+    }
+
+    .timeline-step {
+      background: #1e293b;
+      border-radius: 8px;
+      padding: 8px 10px;
+      border-top: 3px solid #6366f1;
+    }
+
+    .step-tag {
+      font-size: 9px;
+      font-weight: 700;
+      color: #818cf8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .step-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #f8fafc;
+      margin: 2px 0 3px 0;
+    }
+
+    .step-desc {
+      font-size: 10px;
+      color: #94a3b8;
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    /* Two Columns Area */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1.28fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    /* Digital Pass Mockup */
+    .pass-mockup {
+      background: #111827;
+      border: 1.5px solid #d97706;
+      border-radius: 14px;
+      padding: 12px 14px;
+      position: relative;
+    }
+
+    .pass-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1f2937;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+    }
+
+    .pass-name {
+      font-size: 15px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .pass-id {
+      font-size: 11px;
+      color: #f59e0b;
+      font-family: monospace;
+      font-weight: bold;
+    }
+
+    .pass-tag-color {
+      background: #eab308;
+      color: #0f172a;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 20px;
+    }
+
+    .pass-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .pass-box {
+      background: #090d16;
+      border: 1px solid #1f2937;
+      border-radius: 8px;
+      padding: 6px 8px;
+      text-align: center;
+    }
+
+    .pass-box-lbl {
+      font-size: 9px;
+      color: #94a3b8;
+    }
+
+    .pass-box-val {
+      font-size: 13px;
+      font-weight: 800;
+      color: #f8fafc;
+      margin-top: 1px;
+    }
+
+    .qr-container {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 8px;
+      width: 105px;
+      height: 105px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 10 Color Grid */
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+
+    .color-pill {
+      background: #090d16;
+      border: 1px solid #1f2937;
+      border-radius: 6px;
+      padding: 4px 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .color-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Lucky Draw Section Box */
+    .raffle-banner {
+      background: linear-gradient(135deg, #311042 0%, #17153a 50%, #2e1a0b 100%);
+      border: 1.5px solid #eab308;
+      border-radius: 14px;
+      padding: 12px 16px;
+    }
+
+    .raffle-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .raffle-step-card {
+      background: rgba(11, 15, 25, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 8px 10px;
+      text-align: center;
+    }
+
+    .raffle-step-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: #fbbf24;
+      margin-bottom: 2px;
+    }
+
+    .raffle-step-sub {
+      font-size: 9px;
+      color: #94a3b8;
+    }
+
+    .raffle-step-anim {
+      background: rgba(0,0,0,0.5);
+      border-radius: 6px;
+      padding: 6px;
+      margin: 5px 0;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .footer-bar {
+      margin-top: 10px;
+      padding-top: 6px;
+      border-top: 1px solid #1e293b;
+      display: flex;
+      justify-content: space-between;
+      color: #64748b;
+      font-size: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Action Bar (Hidden on print) -->
+  <div class="action-bar no-print">
+    <div>
+      <span style="font-weight: bold; color: #f8fafc; font-size: 14px;">📄 เอกสาร Infographic ระบบงานทัวร์ & สันทนาการ</span>
+      <span style="color: #94a3b8; font-size: 12px; margin-left: 8px;">(พร้อมสำหรับดาวน์โหลดหรือสั่งพิมพ์ A4 คมชัด 100%)</span>
+    </div>
+    <button class="btn-print" onclick="window.print()">
+      🖨️ พิมพ์ / บันทึกเป็น PDF
+    </button>
+  </div>
+
+  <div class="page">
+    
+    <!-- Header -->
+    <div class="header-card">
+      <div class="badge-pill">ระบบจัดการทัวร์ & สันทนาการ • INFOGRAPHIC SPECIFICATION</div>
+      <h1 class="header-title">TOUR & EVENT APPLICATION</h1>
+      <p class="header-sub">
+        ระบบฐานข้อมูลบัตร QR ประจำตัว 10 สี • ตรวจสอบขึ้นรถ • สแกนรับอาหาร • เกมกิจกรรมตอบคำถาม & ประกวดชุด • สุ่มจับรางวัลช้าๆ ขึ้นจอใหญ่
+      </p>
+    </div>
+
+    <!-- Section 1: 4 Pillars -->
+    <div class="section-title">
+      <div class="section-num">1</div>
+      <div>
+        <h2 class="section-h2">4 เสาหลักของระบบ (Core Architecture)</h2>
+        <p class="section-desc">เชื่อมโยงข้อมูลผู้เข้าร่วมงานตั้งแต่จุดเริ่มต้นจนถึงกิจกรรมจับรางวัลเวทีช่วงเย็น</p>
+      </div>
+    </div>
+
+    <div class="grid-4">
+      <div class="card" style="border-top: 3px solid #f59e0b;">
+        <span class="card-badge" style="background: rgba(245,158,11,0.2); color:#fbbf24;">PILLAR 01</span>
+        <div class="card-title">📱 Digital Tour Pass</div>
+        <div style="font-size: 10px; color:#94a3b8; margin-bottom: 4px;">บัตรประจำตัวดิจิทัลในมือถือ</div>
+        <ul class="list-items">
+          <li>ID & QR Code ประจำตัว</li>
+          <li>สังกัดทีม 1 ใน 10 สี</li>
+          <li>เลขรถคันที่ต้องขึ้น</li>
+          <li>สถานะรับอาหาร (ป้องกันรับซ้ำ)</li>
+        </ul>
+      </div>
+
+      <div class="card" style="border-top: 3px solid #10b981;">
+        <span class="card-badge" style="background: rgba(16,185,129,0.2); color:#34d399;">PILLAR 02</span>
+        <div class="card-title">🎯 Interactive Games</div>
+        <div style="font-size: 10px; color:#94a3b8; margin-bottom: 4px;">กิจกรรมตอบคำถาม & แข่งขัน</div>
+        <ul class="list-items">
+          <li>ตอบคำถามเชาวน์ชิงคะแนน</li>
+          <li>แชร์แรงบันดาลใจชุดใส่ทัวร์</li>
+          <li>เช็คชื่อแข่งชุดรอบเย็น (Yes/No)</li>
+          <li>สแกนรับคะแนนกับพนักงาน</li>
+        </ul>
+      </div>
+
+      <div class="card" style="border-top: 3px solid #06b6d4;">
+        <span class="card-badge" style="background: rgba(6,182,212,0.2); color:#22d3ee;">PILLAR 03</span>
+        <div class="card-title">📷 Staff Scanner</div>
+        <div style="font-size: 10px; color:#94a3b8; margin-bottom: 4px;">เครื่องมือสตาฟผ่านมือถือ</div>
+        <ul class="list-items">
+          <li>โหมดจ่ายอาหาร (กันรับซ้ำ)</li>
+          <li>โหมดสแกนเพิ่มแต้มให้ทีมสี</li>
+          <li>สแกนผ่านกล้องมือถือได้ทันที</li>
+          <li>เช็คสิทธิ์รายชื่อผู้ร่วมงาน</li>
+        </ul>
+      </div>
+
+      <div class="card" style="border-top: 3px solid #a855f7;">
+        <span class="card-badge" style="background: rgba(168,85,247,0.2); color:#c084fc;">PILLAR 04</span>
+        <div class="card-title">🎰 Projector Stage</div>
+        <div style="font-size: 10px; color:#94a3b8; margin-bottom: 4px;">จอโปรเจกเตอร์งานเลี้ยง</div>
+        <ul class="list-items">
+          <li>สรุปคะแนนสด 10 สี (Real-time)</li>
+          <li>สุ่มรายชื่อช้าๆ ขึ้นจอใหญ่</li>
+          <li>ลุ้นระทึกพร้อม Sound & Confetti</li>
+          <li>กรองตามแต้ม / คนลงแข่งชุด</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Section 2: Timeline Steps -->
+    <div class="section-title">
+      <div class="section-num">2</div>
+      <div>
+        <h2 class="section-h2">ลำดับขั้นตอนการทำงานตลอดวัน (Tour Operations Timeline)</h2>
+        <p class="section-desc">โฟลว์การใช้งานตั้งแต่เช้าตรู่จนถึงงานเลี้ยงสังสรรค์ค่ำคืน</p>
+      </div>
+    </div>
+
+    <div class="timeline-container">
+      <div class="timeline-step">
+        <div class="step-tag">STEP 01 • เช้า</div>
+        <div class="step-title">เช็คชื่อ & ขึ้นรถ</div>
+        <p class="step-desc">เปิดมือถือดูบัตรดิจิทัล ตรวจสอบหมายเลขรถที่ต้องขึ้น (คันที่ 1-5) และสีประจำตัว</p>
+      </div>
+      <div class="timeline-step" style="border-top-color: #06b6d4;">
+        <div class="step-tag" style="color: #22d3ee;">STEP 02 • พักเที่ยง</div>
+        <div class="step-title">สแกนรับอาหาร</div>
+        <p class="step-desc">ยื่น QR ให้สตาฟสแกนจ่ายกล่องอาหาร ระบบบันทึกเวลาและล็อกป้องกันรับซ้ำ</p>
+      </div>
+      <div class="timeline-step" style="border-top-color: #10b981;">
+        <div class="step-tag" style="color: #34d399;">STEP 03 • ระหว่างทาง</div>
+        <div class="step-title">เกม & ประกวดชุด</div>
+        <p class="step-desc">ตอบคำถาม Quiz สะสมแต้ม, กรอกแรงบันดาลใจชุด และกดยืนยันแข่งชุดรอบค่ำ</p>
+      </div>
+      <div class="timeline-step" style="border-top-color: #f59e0b;">
+        <div class="step-tag" style="color: #fbbf24;">STEP 04 • สันทนาการ</div>
+        <div class="step-title">สแกนรับแต้มทีมสี</div>
+        <p class="step-desc">ผู้ชนะเกมสันทนาการยื่น QR ให้สตาฟสแกน แต้มไหลเข้ายอดรวมของสีนั้นทันที</p>
+      </div>
+      <div class="timeline-step" style="border-top-color: #f43f5e;">
+        <div class="step-tag" style="color: #fb7185;">STEP 05 • งานเลี้ยงค่ำ</div>
+        <div class="step-title">สุ่มรางวัลช้าๆ ขึ้นจอ</div>
+        <p class="step-desc">ฉายจอโปรเจกเตอร์ สรุปผู้ชนะ 10 สี และสุ่มรายชื่อช้าๆ ทีละคนจับรางวัลใหญ่</p>
+      </div>
+    </div>
+
+    <!-- Section 3: Two-Column Mockup and 10 Teams -->
+    <div class="two-col">
+      <!-- Digital Pass Card Mockup -->
+      <div class="pass-mockup">
+        <div class="pass-header">
+          <div>
+            <div style="font-size: 9px; color: #94a3b8; font-weight: bold; letter-spacing: 0.5px;">EVENT PASS 2026</div>
+            <div class="pass-name">สมชาย ใจดีเจริญ</div>
+            <div class="pass-id">ID: TOUR-088</div>
+          </div>
+          <div class="pass-tag-color">🟡 ทีมสีเหลือง</div>
+        </div>
+
+        <div class="pass-info-grid">
+          <div class="pass-box">
+            <div class="pass-box-lbl">รถบัสคันที่</div>
+            <div class="pass-box-val" style="color: #fbbf24;">คันที่ 2</div>
+            <div style="font-size: 9px; color: #64748b;">ทะเบียน 30-8899</div>
+          </div>
+          <div class="pass-box">
+            <div class="pass-box-lbl">สิทธิ์รับอาหาร</div>
+            <div class="pass-box-val" style="color: #34d399; font-size: 12px;">✓ รับแล้ว</div>
+            <div style="font-size: 9px; color: #64748b;">12:15 น. (กันรับซ้ำ)</div>
+          </div>
+        </div>
+
+        <!-- QR Display -->
+        <div class="qr-container">
+          <svg width="84" height="84" viewBox="0 0 100 100" fill="#0f172a">
+            <rect x="5" y="5" width="28" height="28" rx="3"/>
+            <rect x="9" y="9" width="20" height="20" fill="#fff"/>
+            <rect x="13" y="13" width="12" height="12"/>
+            <rect x="67" y="5" width="28" height="28" rx="3"/>
+            <rect x="71" y="9" width="20" height="20" fill="#fff"/>
+            <rect x="75" y="13" width="12" height="12"/>
+            <rect x="5" y="67" width="28" height="28" rx="3"/>
+            <rect x="9" y="71" width="20" height="20" fill="#fff"/>
+            <rect x="13" y="75" width="12" height="12"/>
+            <rect x="40" y="10" width="8" height="8"/>
+            <rect x="52" y="10" width="8" height="14"/>
+            <rect x="40" y="24" width="20" height="8"/>
+            <rect x="10" y="40" width="16" height="8"/>
+            <rect x="30" y="40" width="40" height="10"/>
+            <rect x="75" y="40" width="15" height="8"/>
+            <rect x="40" y="55" width="10" height="20"/>
+            <rect x="55" y="55" width="35" height="12"/>
+            <rect x="40" y="80" width="25" height="12"/>
+            <rect x="70" y="75" width="20" height="18"/>
+          </svg>
+          <div style="font-size: 8px; font-family: monospace; font-weight: bold; color: #334155; margin-top: 1px;">TOUR-088-QR</div>
+        </div>
+        <div style="text-align: center; font-size: 9px; color: #94a3b8; margin-top: 6px;">
+          ยื่น QR ให้สตาฟสแกนเพื่อรับอาหาร และรับคะแนนเกม
+        </div>
+      </div>
+
+      <!-- 10 Colors & Games Breakdown -->
+      <div>
+        <div style="font-size: 13px; font-weight: 700; color: #ffffff; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
+          <span>🎨</span> การแบ่งทีมแข่งขัน 10 สี (10 Teams)
+        </div>
+        <div class="color-grid">
+          <div class="color-pill"><span class="color-dot" style="background:#ef4444;"></span>แดง</div>
+          <div class="color-pill"><span class="color-dot" style="background:#3b82f6;"></span>น้ำเงิน</div>
+          <div class="color-pill"><span class="color-dot" style="background:#10b981;"></span>เขียว</div>
+          <div class="color-pill"><span class="color-dot" style="background:#eab308;"></span>เหลือง</div>
+          <div class="color-pill"><span class="color-dot" style="background:#f97316;"></span>ส้ม</div>
+          <div class="color-pill"><span class="color-dot" style="background:#a855f7;"></span>ม่วง</div>
+          <div class="color-pill"><span class="color-dot" style="background:#ec4899;"></span>ชมพู</div>
+          <div class="color-pill"><span class="color-dot" style="background:#06b6d4;"></span>ฟ้า</div>
+          <div class="color-pill"><span class="color-dot" style="background:#14b8a6;"></span>มิ้นต์</div>
+          <div class="color-pill"><span class="color-dot" style="background:#f59e0b;"></span>ทอง</div>
+        </div>
+
+        <div style="font-size: 13px; font-weight: 700; color: #ffffff; margin-bottom: 6px; margin-top: 8px; display: flex; align-items: center; gap: 5px;">
+          <span>📝</span> 3 กิจกรรมคำถาม & การสะสมคะแนน
+        </div>
+        <div style="background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 9px 12px;">
+          <div style="margin-bottom: 5px;">
+            <strong style="color: #818cf8; font-size: 11px;">ข้อ 1. เกมตอบคำถาม (Quiz):</strong>
+            <span style="font-size: 11px; color:#cbd5e1;"> ตอบคำถามชิงแต้มสะสมเข้าทีมสี</span>
+          </div>
+          <div style="margin-bottom: 5px;">
+            <strong style="color: #f472b6; font-size: 11px;">ข้อ 2. ประกวดชุด & แรงบันดาลใจ:</strong>
+            <span style="font-size: 11px; color:#cbd5e1;"> พิมพ์เล่าความหมายของชุดที่เลือกใส่</span>
+          </div>
+          <div>
+            <strong style="color: #fbbf24; font-size: 11px;">ข้อ 3. ยืนยันประกวดชุดรอบค่ำ:</strong>
+            <span style="font-size: 11px; color:#cbd5e1;"> เลือกเข้าร่วม (Yes/No) เพื่อขึ้นเวทีตัดสิน</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Projector Lucky Draw Slow-Spin Engine -->
+    <div class="raffle-banner">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <span style="background: rgba(234,179,8,0.25); color: #fde047; font-size: 9px; font-weight: bold; padding: 2px 8px; border-radius: 9999px;">
+            PROJECTOR STAGE FEATURE
+          </span>
+          <div style="font-size: 15px; font-weight: 800; color: #ffffff; margin-top: 3px;">
+            🎬 ระบบสุ่มจับรางวัลช้าๆ ขึ้นจอใหญ่ (Slow-Spin Raffle)
+          </div>
+          <div style="font-size: 11px; color: #e2e8f0;">
+            สร้างความตื่นเต้นด้วยเอฟเฟกต์หมุนเร็วแล้วค่อยๆ ชะลอความเร็ว (Deceleration) ทีละจังหวะจนหยุดที่ชื่อผู้ชนะ
+          </div>
+        </div>
+      </div>
+
+      <div class="raffle-steps">
+        <div class="raffle-step-card">
+          <div class="raffle-step-title">01. หมุนเร็ว</div>
+          <div class="raffle-step-sub">Fast Rolling (3-4 วิ)</div>
+          <div class="raffle-step-anim" style="color: #94a3b8;">
+            [ สลับชื่ออย่างรวดเร็ว... ]
+          </div>
+          <div style="font-size: 9px; color: #cbd5e1;">สลับรายชื่อผู้มีสิทธิ์ทั้งหมดอย่างรวดเร็วบนจอโปรเจกเตอร์</div>
+        </div>
+
+        <div class="raffle-step-card" style="border: 1px solid #eab308;">
+          <div class="raffle-step-title" style="color: #fde047;">02. ค่อยๆ ชะลอช้าลง</div>
+          <div class="raffle-step-sub">Slow Suspense (3-5 วิ)</div>
+          <div class="raffle-step-anim" style="color: #fde047; background: rgba(234,179,8,0.15);">
+            ... ติ๊ก ... ติ๊ก ... ติ๊ก ...
+          </div>
+          <div style="font-size: 9px; color: #cbd5e1;">ชะลอความเร็วลงทีละคน บิ้วอารมณ์ลุ้นระทึกของคนทั้งงาน</div>
+        </div>
+
+        <div class="raffle-step-card" style="border: 1px solid #10b981;">
+          <div class="raffle-step-title" style="color: #34d399;">03. เผยโฉมผู้ชนะ!</div>
+          <div class="raffle-step-sub">Winner & Confetti</div>
+          <div class="raffle-step-anim" style="color: #34d399; background: rgba(16,185,129,0.15);">
+            🎉 วราภรณ์ สายบุญ (สีฟ้า)
+          </div>
+          <div style="font-size: 9px; color: #cbd5e1;">จุดพลุกระดาษและตัดชื่อผู้ได้รางวัลออก ป้องกันได้ซ้ำ</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-bar">
+      <div>Tour & Event Operations Architecture • 2026 Edition</div>
+      <div>Designed for Cross-Device: Mobile Pass, Staff Scanner, and Projector Big Screen</div>
+    </div>
+
+  </div>
+
+</body>
+</html>
