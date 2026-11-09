@@ -40,8 +40,9 @@ export default function App() {
   const [selectedId, setSelectedId] = useState('TOUR-001');
   const [activityModalUser, setActivityModalUser] = useState(null);
 
-  // Sync to backend if running
+  // Sync to backend if running (with Real-time SSE support)
   useEffect(() => {
+    // 1. Initial fetch
     fetch('/api/participants')
       .then((res) => res.json())
       .then((res) => {
@@ -51,6 +52,34 @@ export default function App() {
         }
       })
       .catch(() => {});
+
+    // 2. Real-time Server-Sent Events (SSE) Listener
+    let eventSource;
+    try {
+      eventSource = new EventSource('/api/stream');
+      eventSource.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload && payload.data && Array.isArray(payload.data)) {
+            setParticipants(payload.data);
+            localStorage.setItem('tour_participants_data', JSON.stringify(payload.data));
+          }
+        } catch (e) {
+          console.error('SSE JSON parse error:', e);
+        }
+      };
+      eventSource.onerror = () => {
+        // Auto fallback handled by browser EventSource reconnect
+      };
+    } catch (e) {
+      console.warn('SSE not supported or failed to connect:', e);
+    }
+
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+      }
+    };
   }, []);
 
   const saveState = (updatedList) => {

@@ -45,9 +45,22 @@ const INITIAL_PARTICIPANTS = [
   { id: 'TOUR-020', name: 'อรทัย มงคลทรัพย์', teamColor: 'gold', busNumber: 'รถบัสคันที่ 5 (ทะเบียน 30-9900)', foodClaimed: false, foodClaimedAt: null, score: 80, quizAnswered: true, quizScore: 50, costumeInspiration: 'ชุดไทยประยุกต์สีทอง เรียบหรูดูสง่างาม', joinEveningContest: 'yes', wonPrize: false, wonPrizeName: null },
 ];
 
+const sseClients = new Set();
+
+function broadcastSSE(payload) {
+  const msg = `data: ${JSON.stringify(payload)}\n\n`;
+  for (const client of sseClients) {
+    try {
+      client.write(msg);
+    } catch {
+      sseClients.delete(client);
+    }
+  }
+}
+
 function loadDB() {
   if (!fs.existsSync(DB_FILE)) {
-    saveDB(INITIAL_PARTICIPANTS);
+    saveDB(INITIAL_PARTICIPANTS, { action: 'init' });
     return INITIAL_PARTICIPANTS;
   }
   try {
@@ -55,14 +68,53 @@ function loadDB() {
     return JSON.parse(raw);
   } catch (e) {
     console.error('Error reading DB file, resetting to initial', e);
-    saveDB(INITIAL_PARTICIPANTS);
+    saveDB(INITIAL_PARTICIPANTS, { action: 'recover' });
     return INITIAL_PARTICIPANTS;
   }
 }
 
-function saveDB(data) {
+function saveDB(data, eventInfo = { action: 'update' }) {
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
+  broadcastSSE({
+    type: 'sync',
+    timestamp: new Date().toISOString(),
+    event: eventInfo,
+    data,
+  });
 }
+
+// GET Real-time Server-Sent Events (SSE) stream
+app.get('/api/stream', (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache, no-transform',
+    Connection: 'keep-alive',
+    'X-Accel-Buffering': 'no',
+  });
+
+  const initialPayload = {
+    type: 'connected',
+    timestamp: new Date().toISOString(),
+    data: loadDB(),
+  };
+  res.write(`data: ${JSON.stringify(initialPayload)}\n\n`);
+
+  sseClients.add(res);
+
+  const heartbeat = setInterval(() => {
+    try {
+      res.write(': heartbeat\n\n');
+    } catch {
+      clearInterval(heartbeat);
+      sseClients.delete(res);
+    }
+  }, 20000);
+
+  req.on('close', () => {
+    clearInterval(heartbeat);
+    sseClients.delete(res);
+  });
+});
 
 // GET all participants
 app.get('/api/participants', (req, res) => {
@@ -108,7 +160,7 @@ app.post('/api/claim-food', (req, res) => {
   // Process claim
   participant.foodClaimed = true;
   participant.foodClaimedAt = new Date().toISOString();
-  saveDB(data);
+  saveDB(data, { action: 'claim-food', targetId: participant.id, name: participant.name });
 
   res.json({
     success: true,
@@ -132,7 +184,12 @@ app.post('/api/add-score', (req, res) => {
     teamMembers.forEach(p => {
       p.score = (p.score || 0) + Number(points);
     });
-    saveDB(data);
+    saveDB(data, {
+      action: 'add-score-team',
+      teamColor: id.toLowerCase(),
+      points: Number(points),
+      reason: reason || 'คะแนนพิเศษระดับทีม',
+    });
     return res.json({
       success: true,
       message: `🎉 เพิ่มคะแนน +${points} ให้กับทุกคนในทีม ${id} สำเร็จ!`,
@@ -147,7 +204,13 @@ app.post('/api/add-score', (req, res) => {
   }
 
   participant.score = (participant.score || 0) + Number(points);
-  saveDB(data);
+  saveDB(data, {
+    action: 'add-score-user',
+    targetId: participant.id,
+    name: participant.name,
+    teamColor: participant.teamColor,
+    points: Number(points),
+  });
 
   res.json({
     success: true,

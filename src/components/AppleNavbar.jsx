@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import BrandLogo from './BrandLogo';
 import {
   PassIcon,
@@ -9,6 +9,8 @@ import {
   ShieldLockIcon,
   SunIcon,
   MoonIcon,
+  SearchIcon,
+  XIcon,
 } from './ui/Icons';
 
 export default function AppleNavbar({
@@ -22,6 +24,34 @@ export default function AppleNavbar({
   isAdminUnlocked,
   setIsAdminModalOpen,
 }) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchDropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target)) {
+        setIsSearchOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredParticipants = searchQuery.trim()
+    ? participants.filter((p) => {
+        const q = searchQuery.toLowerCase();
+        return (
+          p.name?.toLowerCase().includes(q) ||
+          p.id?.toLowerCase().includes(q) ||
+          p.busNumber?.toLowerCase().includes(q) ||
+          p.teamColor?.toLowerCase().includes(q)
+        );
+      })
+    : participants;
+
+  const currentPerson = participants.find((p) => p.id === selectedId) || participants[0];
+
   const categories = [
     { id: 'pass', name: 'บัตรดิจิทัล', Icon: PassIcon, desc: 'QR ประจำตัว' },
     { id: 'schedule', name: 'กำหนดการ', Icon: RouteIcon, desc: '25–26 ธ.ค. 69' },
@@ -64,29 +94,95 @@ export default function AppleNavbar({
             </span>
           </div>
 
-          {/* Right Controls: Participant Switcher & Theme Toggle */}
+          {/* Right Controls: Participant Quick Search & Theme Toggle */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200/70 dark:hover:bg-zinc-800/80 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-zinc-200/80 dark:border-white/[0.08] transition-colors max-w-[135px] xs:max-w-[165px] sm:max-w-[230px]">
-              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium hidden sm:inline">ผู้ร่วมงาน:</span>
-              <select
-                value={selectedId}
-                onChange={(e) => setSelectedId(e.target.value)}
-                aria-label="เลือกโปรไฟล์ผู้ร่วมงาน"
-                className="bg-transparent text-xs sm:text-sm font-semibold text-zinc-900 dark:text-zinc-100 focus:outline-none cursor-pointer w-full truncate"
+            {/* Quick Search Popover */}
+            <div className="relative" ref={searchDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen(!isSearchOpen)}
+                className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200/70 dark:hover:bg-zinc-800/80 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-zinc-200/80 dark:border-white/[0.08] transition-all max-w-[150px] xs:max-w-[190px] sm:max-w-[260px] text-left cursor-pointer"
               >
-                {participants.map((p) => (
-                  <option key={p.id} value={p.id} className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">
-                    {p.name} ({p.id})
-                  </option>
-                ))}
-              </select>
+                <SearchIcon className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <div className="min-w-0 flex-1 truncate">
+                  <span className="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate block">
+                    {currentPerson ? `${currentPerson.name}` : 'เลือกผู้ร่วมงาน'}
+                  </span>
+                </div>
+                <span className="text-[10px] text-zinc-400 font-mono hidden sm:inline shrink-0">
+                  {currentPerson?.id}
+                </span>
+              </button>
+
+              {/* Search Dropdown Modal */}
+              {isSearchOpen && (
+                <div className="absolute right-0 mt-2 w-72 sm:w-84 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="relative mb-2">
+                    <SearchIcon className="w-4 h-4 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      autoFocus
+                      placeholder="ค้นหาชื่อ, รหัส, คันรถ (เช่น คันที่ 2)..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-8 pr-7 py-1.5 text-xs bg-zinc-100 dark:bg-zinc-800/90 text-zinc-900 dark:text-zinc-100 rounded-xl border border-transparent focus:border-emerald-500 focus:outline-none"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                      >
+                        <XIcon className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="max-h-60 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                    {filteredParticipants.length > 0 ? (
+                      filteredParticipants.map((p) => {
+                        const isSelected = p.id === selectedId;
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedId(p.id);
+                              setIsSearchOpen(false);
+                              setSearchQuery('');
+                            }}
+                            className={`w-full text-left px-2.5 py-1.5 rounded-xl flex items-center justify-between text-xs transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20'
+                                : 'hover:bg-zinc-100 dark:hover:bg-zinc-800/70 text-zinc-700 dark:text-zinc-300'
+                            }`}
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate font-medium">{p.name}</div>
+                              <div className="text-[10px] text-zinc-400 truncate">
+                                {p.busNumber} • ทีม{p.teamColor}
+                              </div>
+                            </div>
+                            <span className="text-[10px] font-mono shrink-0 ml-2 px-1.5 py-0.5 rounded bg-zinc-200/50 dark:bg-zinc-800">
+                              {p.id}
+                            </span>
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <div className="py-4 text-center text-xs text-zinc-400">
+                        ไม่พบข้อมูลที่ตรงกับการค้นหา
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <button
               onClick={() => setIsDark(!isDark)}
               title={isDark ? 'เปลี่ยนเป็นโหมดสว่าง' : 'เปลี่ยนเป็นโหมดมืด'}
               aria-label="สลับโหมดสีหน้าจอ"
-              className="w-8 h-8 rounded-xl flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200/80 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200/80 dark:border-white/[0.08] transition-all shrink-0 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+              className="w-8 h-8 rounded-xl flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200/80 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200/80 dark:border-white/[0.08] transition-all shrink-0 active:scale-[0.96] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 cursor-pointer"
             >
               {isDark ? <SunIcon className="w-4 h-4 text-amber-400" /> : <MoonIcon className="w-4 h-4 text-zinc-700" />}
             </button>
