@@ -130,3 +130,29 @@ export function playFanfare() {
     console.warn('Audio fanfare error', e);
   }
 }
+
+/**
+ * Text-to-Speech: Voice announcement for staff scan confirmation
+ */
+export function speakAnnouncement(text) {
+  try {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Stop any pending speech
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'th-TH';
+      utterance.rate = 1.05;
+      utterance.pitch = 1.0;
+
+      // Select Thai voice if available
+      const voices = window.speechSynthesis.getVoices();
+      const thaiVoice = voices.find(v => v.lang.includes('th') || v.lang.includes('TH'));
+      if (thaiVoice) {
+        utterance.voice = thaiVoice;
+      }
+
+      window.speechSynthesis.speak(utterance);
+    }
+  } catch (e) {
+    console.warn('TTS voice error:', e);
+  }
+}

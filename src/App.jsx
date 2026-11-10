@@ -39,6 +39,7 @@ export default function App() {
   });
   const [selectedId, setSelectedId] = useState('TOUR-001');
   const [activityModalUser, setActivityModalUser] = useState(null);
+  const [foodClaimedAlert, setFoodClaimedAlert] = useState(null);
 
   // Parse URL query params on mount (Auto-routing when scanning QR via smartphone camera)
   useEffect(() => {
@@ -81,6 +82,20 @@ export default function App() {
           if (payload && payload.data && Array.isArray(payload.data)) {
             setParticipants(payload.data);
             localStorage.setItem('tour_participants_data', JSON.stringify(payload.data));
+
+            // Instant In-App Food Claim Notification for the active user
+            if (payload.event && payload.event.action === 'claim-food') {
+              if (payload.event.targetId && payload.event.targetId.toUpperCase() === selectedId.toUpperCase()) {
+                setFoodClaimedAlert({
+                  title: '🥪 รับอาหารเช้าสำเร็จเรียบร้อย!',
+                  message: `ขอให้อร่อยกับมื้อเช้าค่ะ คุณ ${payload.event.name || ''}`,
+                  time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+                });
+                try {
+                  navigator.vibrate?.([200, 100, 200]);
+                } catch {}
+              }
+            }
           }
         } catch (e) {
           console.error('SSE JSON parse error:', e);
@@ -498,6 +513,35 @@ export default function App() {
           onClose={() => setActivityModalUser(null)}
           onSave={handleSaveActivity}
         />
+
+        {/* Real-time In-App Food Claim Notification Modal */}
+        {foodClaimedAlert && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <div className="bg-white dark:bg-zinc-900 border-2 border-emerald-500 rounded-3xl p-6 sm:p-7 max-w-sm w-full text-center space-y-4 shadow-2xl">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-3xl">
+                🥪
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-lg sm:text-xl font-extrabold text-zinc-900 dark:text-zinc-50">
+                  {foodClaimedAlert.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">
+                  {foodClaimedAlert.message}
+                </p>
+                <span className="text-[11px] font-mono text-zinc-400 block pt-1">
+                  บันทึกเวลา: {foodClaimedAlert.time} น.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFoodClaimedAlert(null)}
+                className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+              >
+                รับทราบ และปิดหน้าต่าง
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Admin Password Lock Modal */}
         <AdminPasscodeModal

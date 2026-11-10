@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { playSuccess, playWarning } from '../utils/soundEffects';
+import { playSuccess, playWarning, speakAnnouncement } from '../utils/soundEffects';
 
 export default function StaffScanner({ participants, onClaimFood, onAddScore, onNavigateTab }) {
   const [mode, setMode] = useState('food'); // 'food' or 'score'
@@ -9,6 +9,7 @@ export default function StaffScanner({ participants, onClaimFood, onAddScore, on
   const [manualId, setManualId] = useState('');
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState('');
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
 
   const html5QrCodeRef = useRef(null);
 
@@ -70,13 +71,33 @@ export default function StaffScanner({ participants, onClaimFood, onAddScore, on
     if (mode === 'food') {
       const res = await onClaimFood(cleanId);
       setScanResult(res);
-      if (res.success) playSuccess();
-      else playWarning();
+      if (res.success) {
+        playSuccess();
+        if (voiceEnabled) {
+          const personName = res.participant?.name || 'ผู้ร่วมงาน';
+          speakAnnouncement(`สวัสดีคุณ ${personName} เชิญรับอาหารเช้าได้เลยค่ะ`);
+        }
+      } else {
+        playWarning();
+        if (voiceEnabled) {
+          if (res.alreadyClaimed) {
+            speakAnnouncement('ขออภัยค่ะ ท่านนี้ได้รับอาหารไปแล้วค่ะ');
+          } else {
+            speakAnnouncement('ไม่พบรหัสผู้ร่วมงานในระบบค่ะ');
+          }
+        }
+      }
     } else {
       const res = await onAddScore(cleanId, pointsToAdd);
       setScanResult(res);
-      if (res.success) playSuccess();
-      else playWarning();
+      if (res.success) {
+        playSuccess();
+        if (voiceEnabled) {
+          speakAnnouncement(`บวกคะแนน ${pointsToAdd} แต้ม สำเร็จเรียบร้อยค่ะ`);
+        }
+      } else {
+        playWarning();
+      }
     }
   };
 
@@ -105,26 +126,40 @@ export default function StaffScanner({ participants, onClaimFood, onAddScore, on
         </div>
 
         {/* Apple Segmented Pills */}
-        <div className="inline-flex p-1 rounded-full bg-[#f5f5f7] dark:bg-[#2c2c2e] border border-black/[0.05] dark:border-white/[0.05]">
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="inline-flex p-1 rounded-full bg-[#f5f5f7] dark:bg-[#2c2c2e] border border-black/[0.05] dark:border-white/[0.05]">
+            <button
+              onClick={() => { setMode('food'); setScanResult(null); }}
+              className={`px-5 py-2 rounded-full text-xs font-semibold transition-all ${
+                mode === 'food'
+                  ? 'bg-white dark:bg-[#1c1c1e] text-[#1d1d1f] dark:text-white shadow-sm'
+                  : 'text-[#6e6e73] dark:text-[#a1a1a6] hover:text-[#1d1d1f]'
+              }`}
+            >
+              🥪 1. สแกนแจกอาหาร
+            </button>
+            <button
+              onClick={() => { setMode('score'); setScanResult(null); }}
+              className={`px-5 py-2 rounded-full text-xs font-semibold transition-all ${
+                mode === 'score'
+                  ? 'bg-white dark:bg-[#1c1c1e] text-[#1d1d1f] dark:text-white shadow-sm'
+                  : 'text-[#6e6e73] dark:text-[#a1a1a6] hover:text-[#1d1d1f]'
+              }`}
+            >
+              🏆 2. สแกนให้คะแนนทีม
+            </button>
+          </div>
+
           <button
-            onClick={() => { setMode('food'); setScanResult(null); }}
-            className={`px-5 py-2 rounded-full text-xs font-semibold transition-all ${
-              mode === 'food'
-                ? 'bg-white dark:bg-[#1c1c1e] text-[#1d1d1f] dark:text-white shadow-sm'
-                : 'text-[#6e6e73] dark:text-[#a1a1a6] hover:text-[#1d1d1f]'
+            type="button"
+            onClick={() => setVoiceEnabled(!voiceEnabled)}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1.5 cursor-pointer ${
+              voiceEnabled
+                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
+                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 border-zinc-200 dark:border-zinc-700'
             }`}
           >
-            🥪 1. สแกนแจกอาหาร
-          </button>
-          <button
-            onClick={() => { setMode('score'); setScanResult(null); }}
-            className={`px-5 py-2 rounded-full text-xs font-semibold transition-all ${
-              mode === 'score'
-                ? 'bg-white dark:bg-[#1c1c1e] text-[#1d1d1f] dark:text-white shadow-sm'
-                : 'text-[#6e6e73] dark:text-[#a1a1a6] hover:text-[#1d1d1f]'
-            }`}
-          >
-            🏆 2. สแกนให้คะแนนทีม
+            <span>{voiceEnabled ? '🔊 เสียงประกาศเปิดอยู่' : '🔈 ปิดเสียงประกาศ'}</span>
           </button>
         </div>
 

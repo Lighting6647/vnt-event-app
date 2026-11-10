@@ -115,6 +115,45 @@ export default function AdminPanel({
     showToast('ส่งออกไฟล์ CSV สำหรับตรวจเช็คข้อมูลสำเร็จ');
   };
 
+  const exportUnclaimedFoodCSV = () => {
+    const unclaimed = participants.filter((p) => !p.foodClaimed);
+    if (unclaimed.length === 0) {
+      showToast('ทุกคนรับอาหารเช้าครบ 100% แล้ว! ไม่พบรายชื่อตกค้าง');
+      return;
+    }
+
+    // Sort by bus number for easy head-count coordination
+    const sorted = [...unclaimed].sort((a, b) => (a.busNumber || '').localeCompare(b.busNumber || ''));
+
+    const headers = [
+      'คันรถบัส',
+      'รหัสผู้ร่วมงาน',
+      'ชื่อ-นามสกุล',
+      'ทีมสี',
+      'สถานะอาหารเช้า',
+    ];
+
+    const rows = sorted.map((p) => [
+      `"${p.busNumber}"`,
+      p.id,
+      `"${p.name}"`,
+      p.teamColor,
+      'ยังไม่ได้รับอาหาร',
+    ]);
+
+    const csvContent =
+      '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `unclaimed_food_by_bus_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast(`ส่งออกรายชื่อผู้ยังไม่ได้รับอาหาร (${unclaimed.length} ท่าน) แยกตามคันรถสำเร็จ`);
+  };
+
   const triggerConfirmReset = (mode, title, description) => {
     setConfirmModal({ mode, title, description });
   };
@@ -345,7 +384,16 @@ export default function AdminPanel({
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs font-bold hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 transition-colors cursor-pointer"
               >
                 <DownloadIcon className="w-3.5 h-3.5" />
-                <span>ส่งออกไฟล์ CSV</span>
+                <span>ส่งออก CSV ทั้งหมด</span>
+              </button>
+              <button
+                type="button"
+                onClick={exportUnclaimedFoodCSV}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-bold border border-amber-500/30 transition-colors cursor-pointer"
+                title="ส่งออกรายชื่อผู้ยังไม่ได้รับอาหาร เรียงตามคันรถบัสให้หัวหน้าบัสตามตัว"
+              >
+                <DownloadIcon className="w-3.5 h-3.5" />
+                <span>📋 ผู้ยังไม่รับอาหาร (แยกตามบัส)</span>
               </button>
             </div>
 
