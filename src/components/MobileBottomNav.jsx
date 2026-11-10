@@ -16,8 +16,8 @@ export default function MobileBottomNav({
   setIsAdminModalOpen,
 }) {
   const tabs = [
-    { id: 'pass', name: 'บัตร', Icon: PassIcon },
     { id: 'schedule', name: 'กำหนดการ', Icon: RouteIcon },
+    { id: 'pass', name: 'บัตร', Icon: PassIcon },
     { id: 'bus', name: 'กิจกรรม', Icon: BusIcon },
     { id: 'diff', name: 'จับผิดภาพ', Icon: GridPuzzleIcon },
     { id: 'leaderboard', name: 'คะแนน', Icon: ChartIcon },
