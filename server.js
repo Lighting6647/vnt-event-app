@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -120,6 +121,26 @@ app.get('/api/stream', (req, res) => {
 app.get('/api/participants', (req, res) => {
   const data = loadDB();
   res.json({ success: true, count: data.length, data });
+});
+
+// GET server host LAN IP info for dynamic QR Code generation
+app.get('/api/server-info', (req, res) => {
+  let lanIp = '127.0.0.1';
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const net of interfaces[name]) {
+      if (net.family === 'IPv4' && !net.internal && !net.address.startsWith('169.')) {
+        lanIp = net.address;
+        break;
+      }
+    }
+  }
+  res.json({
+    success: true,
+    port: PORT,
+    lanIp,
+    lanUrl: `http://${lanIp}:${PORT}`,
+  });
 });
 
 // GET single participant by ID

@@ -12,15 +12,34 @@ import {
 
 export default function DigitalPass({ participant, onOpenActivity, onOpenSchedule }) {
   const [qrUrl, setQrUrl] = useState('');
+  const [serverLanUrl, setServerLanUrl] = useState('');
 
   const team = TEAM_COLORS.find(t => t.id === participant?.teamColor) || TEAM_COLORS[0];
 
   useEffect(() => {
+    fetch('/api/server-info')
+      .then(res => res.json())
+      .then(info => {
+        if (info.lanUrl) {
+          setServerLanUrl(info.lanUrl);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
     let active = true;
     if (participant?.id) {
-      // Build smart URL so smartphone camera can tap to open user's pass directly
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const smartUrl = `${origin}/?user=${encodeURIComponent(participant.id)}&tab=pass`;
+      // Determine the best base URL for smartphone QR code scan:
+      // If client is currently browsing via localhost, use server's actual LAN IP so mobile can reach it
+      let baseUrl = window.location.origin;
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        if (serverLanUrl) {
+          baseUrl = serverLanUrl;
+        }
+      }
+
+      const smartUrl = `${baseUrl}/?user=${encodeURIComponent(participant.id)}&tab=pass`;
 
       QRCode.toDataURL(smartUrl, {
         width: 320,
@@ -38,7 +57,7 @@ export default function DigitalPass({ participant, onOpenActivity, onOpenSchedul
     return () => {
       active = false;
     };
-  }, [participant]);
+  }, [participant, serverLanUrl]);
 
   if (!participant) {
     return (
