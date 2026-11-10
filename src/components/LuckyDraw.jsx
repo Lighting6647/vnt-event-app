@@ -14,13 +14,14 @@ export default function LuckyDraw({ participants, onAwardPrize }) {
   const [noticeMsg, setNoticeMsg] = useState('');
 
   const eligiblePool = participants.filter((p) => {
+    if (!p) return false;
     if (p.wonPrize) return false;
     if (filterMode === 'contestants') return p.joinEveningContest === 'yes';
     if (filterMode === 'high-score') return (p.score || 0) >= 50;
     return true;
   });
 
-  const pastWinners = participants.filter((p) => p.wonPrize);
+  const pastWinners = participants.filter((p) => p && p.wonPrize);
 
   const startRandomDraw = () => {
     if (eligiblePool.length === 0) {
@@ -213,7 +214,7 @@ export default function LuckyDraw({ participants, onAwardPrize }) {
                 {currentCandidate.id}
               </span>
               <h3 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
-                {currentCandidate.name}
+                {currentCandidate?.name || 'ผู้ร่วมงาน'}
               </h3>
 
               <div className="flex items-center justify-center gap-2 pt-2">
@@ -222,7 +223,7 @@ export default function LuckyDraw({ participants, onAwardPrize }) {
                     className="px-3 py-1 rounded-full text-xs font-bold text-white shadow-xs"
                     style={{ backgroundColor: candidateTeam.hex }}
                   >
-                    {candidateTeam.name}
+                    {candidateTeam?.name || 'ทีมสี'}
                   </span>
                 )}
                 <span className="px-3 py-1 rounded-full text-xs font-semibold bg-zinc-200/70 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200">
@@ -271,8 +272,8 @@ export default function LuckyDraw({ participants, onAwardPrize }) {
               >
                 <div>
                   <div className="font-bold text-zinc-900 dark:text-zinc-100">
-                    {w.name}{' '}
-                    <span className="font-mono tabular-nums text-zinc-500">({w.id})</span>
+                    {w?.name || w?.id}{' '}
+                    <span className="font-mono tabular-nums text-zinc-500">({w?.id})</span>
                   </div>
                   <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400 mt-1">
                     <TrophyIcon className="w-3 h-3" />

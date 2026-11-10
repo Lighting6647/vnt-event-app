@@ -14,7 +14,7 @@ export default function DigitalPass({ participant, onOpenActivity, onOpenSchedul
   const [qrUrl, setQrUrl] = useState('');
   const [serverLanUrl, setServerLanUrl] = useState('');
 
-  const team = TEAM_COLORS.find(t => t.id === participant?.teamColor) || TEAM_COLORS[0];
+  const team = (participant && TEAM_COLORS.find(t => t.id === participant.teamColor)) || TEAM_COLORS[0] || { name: 'สีทีม', hex: '#10b981', textHex: '#ffffff' };
 
   useEffect(() => {
     fetch('/api/server-info')
@@ -103,19 +103,19 @@ export default function DigitalPass({ participant, onOpenActivity, onOpenSchedul
                 PASS • 25–26 DEC 2569
               </span>
               <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50 mt-0.5 truncate">
-                {participant.name}
+                {participant?.name || 'ไม่ระบุชื่อ'}
               </h2>
               <span className="font-mono tabular-nums text-xs sm:text-sm font-semibold text-zinc-500 dark:text-zinc-400">
-                ID: {participant.id}
+                ID: {participant?.id || '-'}
               </span>
             </div>
 
             <div
               className="px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold shadow-xs flex items-center gap-1.5 shrink-0"
-              style={{ backgroundColor: team.hex, color: team.textHex }}
+              style={{ backgroundColor: team?.hex || '#10b981', color: team?.textHex || '#ffffff' }}
             >
               <span className="w-2 h-2 rounded-full bg-white/90" />
-              {team.name}
+              {team?.name || 'ทีมสี'}
             </div>
           </div>
 
@@ -172,7 +172,7 @@ export default function DigitalPass({ participant, onOpenActivity, onOpenSchedul
               {qrUrl ? (
                 <img
                   src={qrUrl}
-                  alt={`QR Code สำหรับ ${participant.name}`}
+                  alt={`QR Code สำหรับ ${participant?.name || 'ผู้ร่วมงาน'}`}
                   className="w-44 h-44 sm:w-48 sm:h-48 object-contain"
                 />
               ) : (

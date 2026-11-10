@@ -204,7 +204,7 @@ export default function StaffScanner({ participants, onClaimFood, onAddScore, on
               
               {scanResult.participant && (
                 <div className="text-xs text-[#6e6e73] dark:text-[#a1a1a6] pt-1">
-                  ชื่อ: {scanResult.participant.name} | ทีม: {scanResult.participant.teamColor} | รถ: {scanResult.participant.busNumber}
+                  ชื่อ: {scanResult.participant?.name || 'ไม่ระบุชื่อ'} | ทีม: {scanResult.participant?.teamColor || '-'} | รถ: {scanResult.participant?.busNumber || '-'}
                 </div>
               )}
 
@@ -299,7 +299,7 @@ export default function StaffScanner({ participants, onClaimFood, onAddScore, on
         <div className="pt-2">
           <span className="text-[11px] text-[#86868b] block mb-2 font-medium">คลิกทดสอบด่วน:</span>
           <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1">
-            {participants.map(p => (
+            {participants.filter(Boolean).map(p => (
               <button
                 key={p.id}
                 type="button"
@@ -310,7 +310,7 @@ export default function StaffScanner({ participants, onClaimFood, onAddScore, on
                     : 'bg-black/[0.06] dark:bg-white/[0.08] text-[#1d1d1f] dark:text-white hover:bg-[#0071e3] hover:text-white'
                 }`}
               >
-                {p.name} {p.foodClaimed ? '(รับแล้ว)' : ''}
+                {p.name || p.id} {p.foodClaimed ? '(รับแล้ว)' : ''}
               </button>
             ))}
           </div>

@@ -52,14 +52,17 @@ export default function AdminPanel({
     setDeleteTarget(null);
     if (onDeleteParticipant) {
       const res = await onDeleteParticipant(target.id);
-      showToast(res?.message || `ลบรายชื่อ ${target.name} เรียบร้อย`);
+      showToast(res?.message || `ลบรายชื่อ ${target?.name || ''} เรียบร้อย`);
     }
   };
 
   const filtered = participants.filter((p) => {
+    if (!p) return false;
+    const pName = p.name || '';
+    const pId = p.id || '';
     const matchSearch =
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.id.toLowerCase().includes(searchTerm.toLowerCase());
+      pName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pId.toLowerCase().includes(searchTerm.toLowerCase());
     const matchColor = colorFilter === 'all' || p.teamColor === colorFilter;
     const matchBus = busFilter === 'all' || p.busNumber === busFilter;
     return matchSearch && matchColor && matchBus;
@@ -90,11 +93,11 @@ export default function AdminPanel({
       'ประกวดชุดเย็น',
       'รางวัล',
     ];
-    const rows = participants.map((p) => [
-      p.id,
-      p.name,
-      p.teamColor,
-      `"${p.busNumber}"`,
+    const rows = participants.filter(Boolean).map((p) => [
+      p.id || '',
+      `"${p.name || ''}"`,
+      p.teamColor || '',
+      `"${p.busNumber || ''}"`,
       p.foodClaimed ? 'รับแล้ว' : 'ยังไม่ได้รับ',
       p.foodClaimedAt ? `"${new Date(p.foodClaimedAt).toLocaleString('th-TH')}"` : '-',
       p.score || 0,
@@ -133,11 +136,11 @@ export default function AdminPanel({
       'สถานะอาหารเช้า',
     ];
 
-    const rows = sorted.map((p) => [
-      `"${p.busNumber}"`,
-      p.id,
-      `"${p.name}"`,
-      p.teamColor,
+    const rows = sorted.filter(Boolean).map((p) => [
+      `"${p.busNumber || ''}"`,
+      p.id || '',
+      `"${p.name || ''}"`,
+      p.teamColor || '',
       'ยังไม่ได้รับอาหาร',
     ]);
 
@@ -575,18 +578,19 @@ export default function AdminPanel({
                     </tr>
                   ) : (
                     filtered.map((p) => {
+                      if (!p) return null;
                       const colorInfo =
-                        TEAM_COLORS.find((t) => t.id === p.teamColor) || TEAM_COLORS[0];
+                        TEAM_COLORS.find((t) => t.id === p.teamColor) || TEAM_COLORS[0] || { name: 'ทีมสี', hex: '#10b981' };
                       return (
                         <tr
-                          key={p.id}
+                          key={p.id || Math.random()}
                           className="hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition-colors"
                         >
                           <td className="py-3 px-4 font-mono tabular-nums font-bold text-zinc-900 dark:text-zinc-100">
-                            {p.id}
+                            {p.id || '-'}
                           </td>
                           <td className="py-3 px-4 font-semibold text-zinc-900 dark:text-zinc-100">
-                            {p.name}
+                            {p.name || 'ไม่ระบุชื่อ'}
                           </td>
                           <td className="py-3 px-4">
                             <span

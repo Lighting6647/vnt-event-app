@@ -56,7 +56,7 @@ export default function ActivityModal({ participant, isOpen, onClose, onSave }) 
               กิจกรรมตอบคำถาม & ข้อมูลประกวดชุด
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              ผู้ร่วมงาน: <span className="text-white font-bold">{participant.name}</span> ({participant.id})
+              ผู้ร่วมงาน: <span className="text-white font-bold">{participant?.name || 'ไม่ระบุชื่อ'}</span> ({participant?.id || '-'})
             </p>
           </div>
           <button

@@ -156,10 +156,66 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, message: `ลบรายชื่อ ${removed.name} สำเร็จ`, deletedId: targetId });
   }
 
-  // 6. Default Server Info
+  // 6. POST /api/submit-activity
+  if (pathname === '/submit-activity' && req.method === 'POST') {
+    const { id, quizAnswered, quizScore, costumeInspiration, joinEveningContest } = req.body || {};
+    const data = getDB();
+    const p = data.find(item => item.id.toUpperCase() === (id || '').toUpperCase());
+    if (!p) return res.status(404).json({ success: false, message: 'ไม่พบรหัสผู้ร่วมงาน' });
+
+    if (quizAnswered !== undefined) p.quizAnswered = quizAnswered;
+    if (quizScore !== undefined) {
+      p.score = (p.score || 0) + Number(quizScore);
+      p.quizScore = (p.quizScore || 0) + Number(quizScore);
+    }
+    if (costumeInspiration !== undefined) p.costumeInspiration = costumeInspiration;
+    if (joinEveningContest !== undefined) p.joinEveningContest = joinEveningContest;
+
+    saveDB(data);
+    return res.status(200).json({ success: true, message: 'บันทึกกิจกรรมเรียบร้อย', participant: p });
+  }
+
+  // 7. POST /api/award-prize
+  if (pathname === '/award-prize' && req.method === 'POST') {
+    const { id, prizeName } = req.body || {};
+    const data = getDB();
+    const p = data.find(item => item.id.toUpperCase() === (id || '').toUpperCase());
+    if (!p) return res.status(404).json({ success: false, message: 'ไม่พบรหัสผู้ร่วมงาน' });
+
+    p.wonPrize = true;
+    p.wonPrizeName = prizeName;
+    saveDB(data);
+    return res.status(200).json({ success: true, message: `บันทึกรางวัลให้ ${p.name} เรียบร้อย`, participant: p });
+  }
+
+  // 8. POST /api/reset-data
+  if (pathname === '/reset-data' && req.method === 'POST') {
+    const { mode } = req.body || {};
+    const data = getDB();
+
+    if (mode === 'all') {
+      const localDb = path.join(process.cwd(), 'data', 'database.json');
+      let baseData = INITIAL_PARTICIPANTS;
+      if (fs.existsSync(localDb)) {
+        try { baseData = JSON.parse(fs.readFileSync(localDb, 'utf8')); } catch {}
+      }
+      saveDB(baseData);
+      return res.status(200).json({ success: true, message: 'รีเซ็ตข้อมูลทั้งหมดเรียบร้อย' });
+    } else if (mode === 'food-only') {
+      data.forEach(p => { p.foodClaimed = false; p.foodClaimedAt = null; });
+      saveDB(data);
+      return res.status(200).json({ success: true, message: 'รีเซ็ตสถานะอาหารเช้าเรียบร้อย' });
+    } else if (mode === 'prizes-only') {
+      data.forEach(p => { p.wonPrize = false; p.wonPrizeName = null; });
+      saveDB(data);
+      return res.status(200).json({ success: true, message: 'รีเซ็ตสถานะของรางวัลเรียบร้อย' });
+    }
+  }
+
+  // 9. Default Server Info
   if (pathname === '/server-info') {
     return res.status(200).json({ success: true, vercel: true });
   }
 
-  return res.status(200).json({ success: true, message: 'API ready' });
+  return res.status(404).json({ success: false, message: 'Endpoint not found' });
 }

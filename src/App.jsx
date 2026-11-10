@@ -34,10 +34,26 @@ export default function App() {
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
 
   const [participants, setParticipants] = useState(() => {
-    const local = localStorage.getItem('tour_participants_data');
-    return local ? JSON.parse(local) : SEED_PARTICIPANTS;
+    try {
+      const local = localStorage.getItem('tour_participants_data');
+      if (local) {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const sanitized = parsed.filter(p => Boolean(p && p.id && p.name));
+          if (sanitized.length > 0) return sanitized;
+        }
+      }
+    } catch {}
+    return SEED_PARTICIPANTS;
   });
-  const [selectedId, setSelectedId] = useState('TOUR-001');
+  const [selectedId, setSelectedId] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const urlUser = params.get('user');
+      if (urlUser) return urlUser.toUpperCase();
+    } catch {}
+    return SEED_PARTICIPANTS[0]?.id || '500';
+  });
   const [activityModalUser, setActivityModalUser] = useState(null);
   const [foodClaimedAlert, setFoodClaimedAlert] = useState(null);
 
@@ -65,9 +81,11 @@ export default function App() {
     fetch('/api/participants')
       .then((res) => res.json())
       .then((res) => {
-        if (res.success && res.data) {
-          setParticipants(res.data);
-          localStorage.setItem('tour_participants_data', JSON.stringify(res.data));
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          const sanitized = res.data.filter(p => Boolean(p && p.id && p.name));
+          if (sanitized.length > 0) {
+            saveState(sanitized);
+          }
         }
       })
       .catch(() => {});
@@ -80,8 +98,10 @@ export default function App() {
         try {
           const payload = JSON.parse(event.data);
           if (payload && payload.data && Array.isArray(payload.data)) {
-            setParticipants(payload.data);
-            localStorage.setItem('tour_participants_data', JSON.stringify(payload.data));
+            const sanitized = payload.data.filter(p => Boolean(p && p.id && p.name));
+            if (sanitized.length > 0) {
+              saveState(sanitized);
+            }
 
             // Instant In-App Food Claim Notification for the active user
             if (payload.event && payload.event.action === 'claim-food') {
@@ -116,8 +136,11 @@ export default function App() {
   }, []);
 
   const saveState = (updatedList) => {
-    setParticipants(updatedList);
-    localStorage.setItem('tour_participants_data', JSON.stringify(updatedList));
+    const sanitized = (updatedList || []).filter((p) => Boolean(p && p.id && p.name));
+    setParticipants(sanitized);
+    try {
+      localStorage.setItem('tour_participants_data', JSON.stringify(sanitized));
+    } catch {}
   };
 
   // Claim food
@@ -129,8 +152,8 @@ export default function App() {
         body: JSON.stringify({ id }),
       });
       const data = await res.json();
-      if (res.ok && data.success) {
-        const updated = participants.map((p) => (p.id === id ? data.participant : p));
+      if (res.ok && data.success && data.participant) {
+        const updated = participants.map((p) => (p?.id === id ? data.participant : p));
         saveState(updated);
         return { success: true, message: data.message, participant: data.participant };
       } else {
@@ -235,15 +258,15 @@ export default function App() {
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-      if (res.ok && data.success) {
+      if (res.ok && data.success && data.participant) {
         const updated = participants.map((p) =>
-          p.id === payload.id ? data.participant : p
+          p?.id === payload.id ? data.participant : p
         );
         saveState(updated);
       }
     } catch {
       const updated = participants.map((p) => {
-        if (p.id === payload.id) {
+        if (p && p.id === payload.id) {
           return {
             ...p,
             quizAnswered: payload.quizAnswered ? true : p.quizAnswered,
@@ -274,13 +297,13 @@ export default function App() {
         body: JSON.stringify({ id, prizeName }),
       });
       const data = await res.json();
-      if (res.ok && data.success) {
-        const updated = participants.map((p) => (p.id === id ? data.participant : p));
+      if (res.ok && data.success && data.participant) {
+        const updated = participants.map((p) => (p?.id === id ? data.participant : p));
         saveState(updated);
       }
     } catch {
       const updated = participants.map((p) => {
-        if (p.id === id) {
+        if (p && p.id === id) {
           return {
             ...p,
             wonPrize: true,
@@ -338,7 +361,7 @@ export default function App() {
         body: JSON.stringify(newObj),
       });
       const data = await res.json();
-      if (res.ok && data.success) {
+      if (res.ok && data.success && data.participant) {
         saveState([...participants, data.participant]);
         return;
       }
@@ -371,7 +394,7 @@ export default function App() {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        const updated = participants.filter((p) => p.id !== id);
+        const updated = participants.filter((p) => p && p.id !== id);
         saveState(updated);
         if (selectedId === id && updated.length > 0) {
           setSelectedId(updated[0].id);
@@ -380,7 +403,7 @@ export default function App() {
       }
       return { success: false, message: data.message || 'ลบข้อมูลไม่สำเร็จ' };
     } catch {
-      const updated = participants.filter((p) => p.id !== id);
+      const updated = participants.filter((p) => p && p.id !== id);
       saveState(updated);
       if (selectedId === id && updated.length > 0) {
         setSelectedId(updated[0].id);
@@ -400,7 +423,7 @@ export default function App() {
   };
 
   const currentParticipant =
-    participants.find((p) => p.id === selectedId) || participants[0];
+    participants.find((p) => p && p.id === selectedId) || participants[0] || SEED_PARTICIPANTS[0];
 
   return (
     <div className={isDark ? 'dark' : ''}>

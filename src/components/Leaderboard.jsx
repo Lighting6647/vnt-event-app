@@ -14,8 +14,8 @@ export default function Leaderboard({ participants }) {
       };
     });
 
-    participants.forEach(p => {
-      if (map[p.teamColor]) {
+    (participants || []).forEach(p => {
+      if (p && p.teamColor && map[p.teamColor]) {
         map[p.teamColor].totalScore += p.score || 0;
         map[p.teamColor].memberCount += 1;
         if (p.foodClaimed) {
@@ -111,14 +111,14 @@ export default function Leaderboard({ participants }) {
               style={{ backgroundColor: teamStats[1].hex }}
             >
               <span className="w-2 h-2 rounded-full bg-white/80 shrink-0" />
-              <span className="truncate">{teamStats[1].name}</span>
+              <span className="truncate">{teamStats[1]?.name || 'สีทีม'}</span>
             </div>
             <div className="text-lg sm:text-2xl font-extrabold font-mono tabular-nums text-zinc-900 dark:text-zinc-50 tracking-tight">
-              {teamStats[1].totalScore}{' '}
+              {teamStats[1]?.totalScore || 0}{' '}
               <span className="text-[11px] sm:text-xs font-sans text-zinc-500 font-medium">แต้ม</span>
             </div>
             <span className="text-[11px] sm:text-xs text-zinc-500 font-mono tabular-nums block truncate">
-              สมาชิก {teamStats[1].memberCount} คน
+              สมาชิก {teamStats[1]?.memberCount || 0} คน
             </span>
           </div>
         )}
@@ -134,10 +134,10 @@ export default function Leaderboard({ participants }) {
               style={{ backgroundColor: teamStats[0].hex }}
             >
               <span className="w-2 h-2 rounded-full bg-white shrink-0" />
-              <span className="truncate">{teamStats[0].name}</span>
+              <span className="truncate">{teamStats[0]?.name || 'สีทีม'}</span>
             </div>
             <div className="text-2xl sm:text-4xl font-extrabold font-mono tabular-nums text-amber-600 dark:text-amber-400 tracking-tight">
-              {teamStats[0].totalScore}{' '}
+              {teamStats[0]?.totalScore || 0}{' '}
               <span className="text-xs sm:text-sm font-sans text-zinc-500 font-medium">แต้ม</span>
             </div>
             <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 block truncate">
@@ -157,10 +157,10 @@ export default function Leaderboard({ participants }) {
               style={{ backgroundColor: teamStats[2].hex }}
             >
               <span className="w-2 h-2 rounded-full bg-white/80 shrink-0" />
-              <span className="truncate">{teamStats[2].name}</span>
+              <span className="truncate">{teamStats[2]?.name || 'สีทีม'}</span>
             </div>
             <div className="text-lg sm:text-2xl font-extrabold font-mono tabular-nums text-zinc-900 dark:text-zinc-50 tracking-tight">
-              {teamStats[2].totalScore}{' '}
+              {teamStats[2]?.totalScore || 0}{' '}
               <span className="text-[11px] sm:text-xs font-sans text-zinc-500 font-medium">แต้ม</span>
             </div>
             <span className="text-[11px] sm:text-xs text-zinc-500 font-mono tabular-nums block truncate">
@@ -219,7 +219,7 @@ export default function Leaderboard({ participants }) {
                     />
 
                     <span className="font-bold text-sm sm:text-base text-zinc-900 dark:text-zinc-100">
-                      {team.name}
+                      {team?.name || 'สีทีม'}
                     </span>
 
                     <span className="text-xs text-zinc-500 font-mono tabular-nums hidden xs:inline">
