@@ -15,6 +15,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <!-- Auto-Healing Storage Guard: Prevents corrupted state crashes before React mounts -->
+    <script>
+      (function() {
+        try {
+          var k = 'tour_participants_data';
+          var raw = localStorage.getItem(k);
+          if (raw) {
+            var arr = JSON.parse(raw);
+            if (!Array.isArray(arr) || arr.some(function(p) { return !p || !p.id || !p.name; })) {
+              localStorage.removeItem(k);
+            }
+          }
+        } catch(e) {
+          try { localStorage.removeItem('tour_participants_data'); } catch(_) {}
+        }
+      })();
+    </script>
     <script type="module" crossorigin src="/assets/index-C-3hKdje.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/vendor-react-DA1AItoQ.js">
     <link rel="modulepreload" crossorigin href="/assets/vendor-qr-generator-lFS2PeMY.js">
