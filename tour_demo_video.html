@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>วิดีโอสาธิตการใช้งานระบบ Tour & Event App 2026 - VNT Event Organizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Prompt', 'Plus Jakarta Sans', sans-serif;
+      background-color: #09090b;
+      color: #f4f4f5;
+    }
+    .cinema-screen {
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 40px rgba(16, 185, 129, 0.15);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #18181b;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #27272a;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #3f3f46;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-zinc-950 text-zinc-100 selection:bg-emerald-500/30">
+
+  <!-- Top Cinema Header -->
+  <header class="border-b border-zinc-800/80 bg-zinc-900/60 backdrop-blur-md sticky top-0 z-50 py-3.5 px-4 sm:px-8">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center font-black text-zinc-950 text-lg shadow-lg shadow-emerald-500/20">
+          ▶
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs uppercase font-extrabold tracking-widest text-emerald-400">Interactive Walkthrough Video</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-800 text-zinc-300 border border-zinc-700">Full HD 60fps</span>
+          </div>
+          <h1 class="text-base sm:text-lg font-bold text-white tracking-tight">วิดีโอสาธิตระบบ Tour & Event Management 2026</h1>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <a href="http://localhost:3001" target="_blank" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-md hover:shadow-emerald-500/20 flex items-center gap-2">
+          <span>เปิดแอปพลิเคชันจริง</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Showcase Content -->
+  <main class="max-w-7xl mx-auto p-4 sm:p-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- Left Column: Video Cinema Player (Col 8) -->
+    <div class="lg:col-span-8 space-y-4">
+      
+      <!-- Video Frame Container -->
+      <div class="cinema-screen rounded-3xl overflow-hidden bg-zinc-900 border border-zinc-800 relative group aspect-video flex flex-col justify-between">
+        
+        <!-- Video Screen Canvas (Dynamic UI Simulation) -->
+        <div id="videoCanvas" class="relative w-full h-full flex items-center justify-center overflow-hidden bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 sm:p-12">
+          
+          <!-- Scene 1: Smart QR Pass -->
+          <div id="scene1" class="scene w-full max-w-sm bg-zinc-900/90 rounded-3xl border border-zinc-700/80 p-6 space-y-4 shadow-2xl transition-all duration-500 transform">
+            <div class="h-2 w-full rounded-full bg-amber-500 mb-2"></div>
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">PASS • 25–26 DEC 2569</span>
+                <h3 class="text-xl font-black text-white">อำพล แซ่แฮ</h3>
+                <span class="text-xs font-mono text-emerald-400 font-bold">ID: TOUR-001</span>
+              </div>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">สีส้ม</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div class="bg-zinc-800/80 p-2.5 rounded-xl border border-zinc-700">
+                <span class="text-zinc-400 block text-[10px]">รถบัส</span>
+                <span class="font-bold text-white text-xs">คันที่ 1 (30-1122)</span>
+              </div>
+              <div class="bg-zinc-800/80 p-2.5 rounded-xl border border-zinc-700">
+                <span class="text-zinc-400 block text-[10px]">สิทธิ์อาหารเช้า</span>
+                <span id="sceneFoodStatus" class="font-bold text-amber-400 text-xs">รอสแกนรับสิทธิ์</span>
+              </div>
+            </div>
+
+            <div class="bg-white p-3 rounded-2xl flex flex-col items-center justify-center shadow-inner">
+              <img src="/online_qr_code.png" class="w-32 h-32 object-contain" alt="QR Code">
+              <span class="text-[10px] font-mono font-bold text-zinc-900 mt-1">TOUR-001 (Smart Auto-Route)</span>
+            </div>
+          </div>
+
+          <!-- Scene 2: Scanner & Auto Voice Announcement -->
+          <div id="scene2" class="scene hidden w-full max-w-md bg-zinc-900 rounded-3xl border border-zinc-700 p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <div class="flex items-center gap-2">
+                <div class="w-3 h-3 rounded-full bg-red-500 animate-ping"></div>
+                <span class="text-xs font-bold text-white">สแกนเนอร์สตาฟฟ์ (แจกอาหารกล่อง)</span>
+              </div>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/10 text-emerald-400">เสียง AI เปิดอยู่</span>
+            </div>
+
+            <div class="bg-zinc-950 rounded-2xl h-36 border border-zinc-800 flex flex-col items-center justify-center relative overflow-hidden">
+              <div class="w-40 h-28 border-2 border-emerald-500/80 rounded-xl relative flex items-center justify-center">
+                <div class="absolute inset-x-0 h-0.5 bg-emerald-400 shadow-[0_0_12px_#34d399] animate-bounce"></div>
+                <span class="text-[11px] font-mono text-emerald-400">TARGET: TOUR-001</span>
+              </div>
+            </div>
+
+            <div class="bg-emerald-500/15 border border-emerald-500/40 p-4 rounded-2xl flex items-center gap-3">
+              <div class="text-2xl">🔊</div>
+              <div>
+                <span class="text-xs font-bold text-emerald-400 block">AI Text-to-Speech สด:</span>
+                <p class="text-xs text-white font-medium">"สวัสดีคุณ อำพล แซ่แฮ เชิญรับอาหารเช้าได้เลยค่ะ"</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scene 3: Live In-App Notification (Real-time SSE) -->
+          <div id="scene3" class="scene hidden w-full max-w-sm bg-zinc-900 rounded-3xl border-2 border-emerald-500 p-6 text-center space-y-4 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-3xl">
+              🥪
+            </div>
+            <div>
+              <h4 class="text-lg font-bold text-white">รับอาหารเช้าสำเร็จเรียบร้อย!</h4>
+              <p class="text-xs text-zinc-400 mt-1">ขอให้อร่อยกับมื้อเช้าค่ะ คุณ อำพล แซ่แฮ</p>
+              <span class="text-[10px] font-mono text-zinc-500 mt-2 block">ป้องกันการรับซ้ำ 100% (Real-time SSE)</span>
+            </div>
+            <div class="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold">
+              รับทราบ และปิดหน้าต่าง
+            </div>
+          </div>
+
+          <!-- Scene 4: 10 Colors Olympic Leaderboard -->
+          <div id="scene4" class="scene hidden w-full max-w-lg bg-zinc-900 rounded-3xl border border-zinc-800 p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+              <div>
+                <span class="text-[10px] uppercase font-bold text-amber-400">OLYMPIC PODIUM STANDINGS</span>
+                <h3 class="text-base font-bold text-white">ตารางคะแนนสะสม 10 สี (สดบนเวที)</h3>
+              </div>
+              <span class="text-xs font-mono font-bold text-emerald-400 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                SYNC อัตโนมัติ
+              </span>
+            </div>
+
+            <!-- Mini Podium -->
+            <div class="grid grid-cols-3 gap-2 text-center items-end pt-2">
+              <div class="bg-zinc-800/80 p-3 rounded-2xl border border-zinc-700">
+                <span class="text-xs font-bold text-zinc-300">2nd สีทอง</span>
+                <div class="text-lg font-black font-mono text-white mt-1">180</div>
+              </div>
+              <div class="bg-amber-500/20 p-4 rounded-2xl border-2 border-amber-500/80 -translate-y-2">
+                <span class="text-xs font-bold text-amber-400">👑 1st สีส้ม</span>
+                <div class="text-xl font-black font-mono text-amber-300 mt-1">210</div>
+              </div>
+              <div class="bg-zinc-800/80 p-3 rounded-2xl border border-zinc-700">
+                <span class="text-xs font-bold text-zinc-300">3rd สีเขียว</span>
+                <div class="text-lg font-black font-mono text-white mt-1">165</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scene 5: Bus Management & Unclaimed Food CSV Export -->
+          <div id="scene5" class="scene hidden w-full max-w-md bg-zinc-900 rounded-3xl border border-zinc-800 p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-lg">
+                📋
+              </div>
+              <div>
+                <h3 class="text-sm font-bold text-white">ระบบจัดการรายชื่อตกค้างแยกตามคันรถ</h3>
+                <span class="text-xs text-zinc-400">สำหรับหัวหน้าบัสและฝ่ายประสานงาน</span>
+              </div>
+            </div>
+
+            <div class="bg-zinc-950 p-3.5 rounded-2xl border border-zinc-800 space-y-2">
+              <div class="flex justify-between text-xs text-zinc-300">
+                <span>รถบัสคันที่ 1 (30-1122):</span>
+                <span class="font-bold text-emerald-400">รับครบ 100%</span>
+              </div>
+              <div class="flex justify-between text-xs text-zinc-300">
+                <span>รถบัสคันที่ 2 (30-3344):</span>
+                <span class="font-bold text-amber-400">เหลือ 2 ท่าน</span>
+              </div>
+            </div>
+
+            <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs">
+              <span class="font-bold text-amber-300">Export ไฟล์ CSV แยกตามบัส</span>
+              <span class="text-xs bg-amber-500 text-zinc-950 font-bold px-2.5 py-1 rounded-lg">ดาวน์โหลด</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Video Bottom Player Bar (Control Dock) -->
+        <div class="bg-zinc-900/95 border-t border-zinc-800 px-4 py-3 flex flex-col gap-2">
+          
+          <!-- Progress Scrubber -->
+          <div class="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden cursor-pointer relative" id="progressBarContainer">
+            <div id="progressBar" class="h-full bg-emerald-500 transition-all duration-300 rounded-full" style="width: 20%;"></div>
+          </div>
+
+          <!-- Controls & Timer -->
+          <div class="flex items-center justify-between text-xs">
+            <div class="flex items-center gap-3">
+              <button id="playPauseBtn" class="w-8 h-8 rounded-full bg-white text-zinc-950 flex items-center justify-center font-black hover:scale-105 active:scale-95 transition-all">
+                ⏸
+              </button>
+              <div class="font-mono text-zinc-400">
+                <span id="currentTime" class="text-white font-bold">00:15</span> / <span id="totalTime">01:15</span>
+              </div>
+              <span id="currentChapterName" class="text-emerald-400 font-bold hidden sm:inline pl-2 border-l border-zinc-700">
+                บทที่ 1: บัตรดิจิทัล Smart QR Link
+              </span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button id="voiceNarrationToggle" class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium text-[11px] flex items-center gap-1.5 transition-colors">
+                <span>🔊 เสียงบรรยายภาษาไทย: <strong class="text-emerald-400">เปิด</strong></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Playback Summary Banner -->
+      <div class="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800/80 flex items-center justify-between gap-4">
+        <div>
+          <h4 class="text-sm font-bold text-white">คู่มือแบบสื่อประสม (Interactive Multimedia Guide)</h4>
+          <p class="text-xs text-zinc-400 mt-0.5">ระบบจะเล่นจำลองสถานการณ์จริงทีละขั้นตอน พร้อมเสียงบรรยายภาษาไทยอัตโนมัติ</p>
+        </div>
+        <button id="restartVideoBtn" class="px-3.5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-bold text-white transition-colors shrink-0">
+          ↺ เริ่มดูใหม่
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Interactive Chapter Index (Col 4) -->
+    <div class="lg:col-span-4 space-y-4">
+      <div class="bg-zinc-900/80 border border-zinc-800 rounded-3xl p-5 space-y-3 shadow-xl">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>สารบัญหัวข้อสาธิต (5 บทเรียน)</span>
+        </h3>
+        
+        <div class="space-y-2 custom-scrollbar max-h-[460px] overflow-y-auto pr-1">
+          
+          <!-- Chapter 1 -->
+          <div onclick="jumpToScene(1)" id="chapBtn1" class="chap-card cursor-pointer p-3.5 rounded-2xl bg-zinc-800/90 border border-emerald-500/40 text-xs transition-all space-y-1">
+            <div class="flex justify-between items-center font-bold">
+              <span class="text-emerald-400">บทที่ 1: บัตรดิจิทัล & Smart QR</span>
+              <span class="font-mono text-[10px] text-zinc-400">00:00 - 00:15</span>
+            </div>
+            <p class="text-zinc-300 text-[11px]">สแกนผ่านกล้อง iPhone/Android แล้วเปิดหน้าเว็บตรงเข้าบัตรตนเองทันที</p>
+          </div>
+
+          <!-- Chapter 2 -->
+          <div onclick="jumpToScene(2)" id="chapBtn2" class="chap-card cursor-pointer p-3.5 rounded-2xl bg-zinc-950/60 hover:bg-zinc-800/50 border border-zinc-800 text-xs transition-all space-y-1">
+            <div class="flex justify-between items-center font-bold">
+              <span class="text-zinc-200">บทที่ 2: สแกนเนอร์ & เสียง AI พูด</span>
+              <span class="font-mono text-[10px] text-zinc-400">00:15 - 00:30</span>
+            </div>
+            <p class="text-zinc-400 text-[11px]">สตาฟฟ์ยิงสแกนข้าวเช้า ล็อกกันซ้ำ พร้อมระบบ Text-to-Speech ขอบคุณชื่อผู้ร่วมงาน</p>
+          </div>
+
+          <!-- Chapter 3 -->
+          <div onclick="jumpToScene(3)" id="chapBtn3" class="chap-card cursor-pointer p-3.5 rounded-2xl bg-zinc-950/60 hover:bg-zinc-800/50 border border-zinc-800 text-xs transition-all space-y-1">
+            <div class="flex justify-between items-center font-bold">
+              <span class="text-zinc-200">บทที่ 3: เด้งแจ้งเตือนรับอาหารสด</span>
+              <span class="font-mono text-[10px] text-zinc-400">00:30 - 00:45</span>
+            </div>
+            <p class="text-zinc-400 text-[11px]">มือถือผู้ร่วมงานสั่นและเด้งป๊อปอัปยืนยันการรับอาหารแบบเรียลไทม์ (SSE)</p>
+          </div>
+
+          <!-- Chapter 4 -->
+          <div onclick="jumpToScene(4)" id="chapBtn4" class="chap-card cursor-pointer p-3.5 rounded-2xl bg-zinc-950/60 hover:bg-zinc-800/50 border border-zinc-800 text-xs transition-all space-y-1">
+            <div class="flex justify-between items-center font-bold">
+              <span class="text-zinc-200">บทที่ 4: ตารางคะแนน 10 สีขึ้นเวที</span>
+              <span class="font-mono text-[10px] text-zinc-400">00:45 - 01:00</span>
+            </div>
+            <p class="text-zinc-400 text-[11px]">คะแนนขยับสดทันทีบนจอโปรเจกเตอร์เวทีเมื่อสตาฟฟ์กดบวกแต้ม ไม่ต้องรีเฟรช</p>
+          </div>
+
+          <!-- Chapter 5 -->
+          <div onclick="jumpToScene(5)" id="chapBtn5" class="chap-card cursor-pointer p-3.5 rounded-2xl bg-zinc-950/60 hover:bg-zinc-800/50 border border-zinc-800 text-xs transition-all space-y-1">
+            <div class="flex justify-between items-center font-bold">
+              <span class="text-zinc-200">บทที่ 5: จัดการบัส & ส่งออก CSV</span>
+              <span class="font-mono text-[10px] text-zinc-400">01:00 - 01:15</span>
+            </div>
+            <p class="text-zinc-400 text-[11px]">ดาวน์โหลดรายชื่อคนที่ยังไม่รับข้าวแยกตามคันรถบัส 1 คลิก เช็คชื่อก่อนล้อหมุน</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const chapters = [
+      { id: 1, name: 'บทที่ 1: บัตรดิจิทัล Smart QR Link', voice: 'บทที่ 1 บัตรประจำตัวดิจิทัล แสดงหมายเลขรถบัส สีทีม และคิวอาร์โค้ดอัจฉริยะ สแกนแล้วเปิดหน้าเว็บเข้าบัตรของตนเองได้ทันทีค่ะ' },
+      { id: 2, name: 'บทที่ 2: สแกนเนอร์แจกอาหาร & เสียง AI ประกาศ', voice: 'บทที่ 2 สแกนเนอร์สตาฟฟ์ ตรวจสอบสิทธิ์อาหาร ล็อกป้องกันการรับซ้ำ พร้อมระบบปัญญาประดิษฐ์อ่านชื่อขอบคุณผู้ร่วมงานอัตโนมัติค่ะ' },
+      { id: 3, name: 'บทที่ 3: เด้งแจ้งเตือนรับอาหารเช้าสำเร็จ (SSE)', voice: 'บทที่ 3 ทันทีที่สตาฟฟ์สแกนสำเร็จ หน้าจอมือถือของผู้ร่วมงานจะสั่นและเด้งป๊อปอัปยืนยันการรับอาหารแบบเรียลไทม์ทันทีค่ะ' },
+      { id: 4, name: 'บทที่ 4: ตารางคะแนนรวม 10 สีสดบนเวที', voice: 'บทที่ 4 ลีดเดอร์บอร์ดการแข่งขัน 10 สี คะแนนจะอัปเดตสดบนจอโปรเจกเตอร์เวทีใหญ่ทันทีที่สตาฟฟ์ให้คะแนนโดยไม่ต้องรีเฟรชค่ะ' },
+      { id: 5, name: 'บทที่ 5: ส่งออกรายชื่อผู้ยังไม่รับข้าวแยกตามบัส', voice: 'บทที่ 5 ระบบแอดมิน สามารถส่งออกไฟล์ ซีเอสวี รายชื่อผู้ที่ยังไม่ได้รับอาหาร แยกตามคันรถบัสได้ในคลิกเดียว เพื่อตามตัวก่อนรถออกค่ะ' }
+    ];
+
+    let currentScene = 1;
+    let isPlaying = true;
+    let voiceEnabled = true;
+    let timer = null;
+    let secondsElapsed = 0;
+    const TOTAL_SECONDS = 75; // 15s per scene
+
+    function speakText(text) {
+      if (!voiceEnabled || !('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'th-TH';
+      u.rate = 1.05;
+      const voices = window.speechSynthesis.getVoices();
+      const th = voices.find(v => v.lang.includes('th'));
+      if (th) u.voice = th;
+      window.speechSynthesis.speak(u);
+    }
+
+    function showScene(sceneNum) {
+      currentScene = sceneNum;
+      for (let i = 1; i <= 5; i++) {
+        const el = document.getElementById(`scene${i}`);
+        const btn = document.getElementById(`chapBtn${i}`);
+        if (el) el.classList.add('hidden');
+        if (btn) {
+          btn.classList.remove('bg-zinc-800/90', 'border-emerald-500/40');
+          btn.classList.add('bg-zinc-950/60', 'border-zinc-800');
+          const title = btn.querySelector('span:first-child');
+          if (title) {
+            title.classList.remove('text-emerald-400');
+            title.classList.add('text-zinc-200');
+          }
+        }
+      }
+
+      const activeEl = document.getElementById(`scene${sceneNum}`);
+      const activeBtn = document.getElementById(`chapBtn${sceneNum}`);
+      if (activeEl) activeEl.classList.remove('hidden');
+      if (activeBtn) {
+        activeBtn.classList.add('bg-zinc-800/90', 'border-emerald-500/40');
+        activeBtn.classList.remove('bg-zinc-950/60', 'border-zinc-800');
+        const title = activeBtn.querySelector('span:first-child');
+        if (title) {
+          title.classList.add('text-emerald-400');
+          title.classList.remove('text-zinc-200');
+        }
+      }
+
+      const chap = chapters[sceneNum - 1];
+      document.getElementById('currentChapterName').textContent = chap.name;
+      speakText(chap.voice);
+    }
+
+    function jumpToScene(num) {
+      secondsElapsed = (num - 1) * 15;
+      updateScrubber();
+      showScene(num);
+    }
+
+    function updateScrubber() {
+      const pct = (secondsElapsed / TOTAL_SECONDS) * 100;
+      document.getElementById('progressBar').style.width = `${pct}%`;
+
+      const m = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
+      const s = (secondsElapsed % 60).toString().padStart(2, '0');
+      document.getElementById('currentTime').textContent = `${m}:${s}`;
+    }
+
+    function tick() {
+      if (!isPlaying) return;
+      secondsElapsed += 1;
+      if (secondsElapsed >= TOTAL_SECONDS) {
+        secondsElapsed = 0;
+      }
+
+      const targetScene = Math.floor(secondsElapsed / 15) + 1;
+      if (targetScene !== currentScene) {
+        showScene(targetScene);
+      }
+      updateScrubber();
+    }
+
+    // Controls
+    document.getElementById('playPauseBtn').addEventListener('click', () => {
+      isPlaying = !isPlaying;
+      document.getElementById('playPauseBtn').textContent = isPlaying ? '⏸' : '▶';
+      if (!isPlaying && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      } else if (isPlaying) {
+        speakText(chapters[currentScene - 1].voice);
+      }
+    });
+
+    document.getElementById('restartVideoBtn').addEventListener('click', () => {
+      jumpToScene(1);
+    });
+
+    document.getElementById('voiceNarrationToggle').addEventListener('click', () => {
+      voiceEnabled = !voiceEnabled;
+      const el = document.getElementById('voiceNarrationToggle');
+      el.innerHTML = `<span>🔊 เสียงบรรยายภาษาไทย: <strong class="${voiceEnabled ? 'text-emerald-400' : 'text-zinc-500'}">${voiceEnabled ? 'เปิด' : 'ปิด'}</strong></span>`;
+      if (!voiceEnabled && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      } else if (voiceEnabled) {
+        speakText(chapters[currentScene - 1].voice);
+      }
+    });
+
+    // Start video timeline
+    timer = setInterval(tick, 1000);
+    showScene(1);
+  </script>
+</body>
+</html>
