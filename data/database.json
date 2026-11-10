@@ -6,9 +6,9 @@
     "busNumber": "รถบัสคันที่ 2 (ทะเบียน 30-3344)",
     "foodClaimed": false,
     "foodClaimedAt": null,
-    "score": 690,
-    "quizAnswered": true,
-    "quizScore": 320,
+    "score": 50,
+    "quizAnswered": false,
+    "quizScore": 0,
     "costumeInspiration": "ธีมทะเลสไตล์ฮาวาย ผสมผสานสีเหลืองสดใส",
     "joinEveningContest": "yes",
     "wonPrize": false,
@@ -19,8 +19,8 @@
     "name": "วราภรณ์ สายบุญ",
     "teamColor": "cyan",
     "busNumber": "รถบัสคันที่ 1 (ทะเบียน 30-1122)",
-    "foodClaimed": true,
-    "foodClaimedAt": "2026-11-06T11:45:00.000Z",
+    "foodClaimed": false,
+    "foodClaimedAt": null,
     "score": 80,
     "quizAnswered": true,
     "quizScore": 40,
@@ -41,16 +41,16 @@
     "quizScore": 0,
     "costumeInspiration": "เสื้อเชิ้ตแดงแรงฤทธิ์ พร้อมแว่นกันแดดสุดเท่",
     "joinEveningContest": "no",
-    "wonPrize": true,
-    "wonPrizeName": "สร้อยคอทองคำหนัก 1 สลึง"
+    "wonPrize": false,
+    "wonPrizeName": null
   },
   {
     "id": "TOUR-004",
     "name": "ณิชาภัทร ศรีสุนทร",
     "teamColor": "pink",
     "busNumber": "รถบัสคันที่ 3 (ทะเบียน 30-5566)",
-    "foodClaimed": true,
-    "foodClaimedAt": "2026-11-06T11:50:12.000Z",
+    "foodClaimed": false,
+    "foodClaimedAt": null,
     "score": 60,
     "quizAnswered": true,
     "quizScore": 50,
@@ -94,8 +94,8 @@
     "name": "อภิสิทธิ์ วงศ์สวัสดิ์",
     "teamColor": "orange",
     "busNumber": "รถบัสคันที่ 4 (ทะเบียน 30-7788)",
-    "foodClaimed": true,
-    "foodClaimedAt": "2026-11-06T12:01:25.000Z",
+    "foodClaimed": false,
+    "foodClaimedAt": null,
     "score": 45,
     "quizAnswered": false,
     "quizScore": 0,
@@ -116,8 +116,8 @@
     "quizScore": 40,
     "costumeInspiration": "ชุดสีม่วงลาเวนเดอร์ โบฮีเมียนสุดเก๋",
     "joinEveningContest": "yes",
-    "wonPrize": true,
-    "wonPrizeName": "สร้อยคอทองคำหนัก 1 สลึง"
+    "wonPrize": false,
+    "wonPrizeName": null
   },
   {
     "id": "TOUR-009",
@@ -161,8 +161,8 @@
     "quizScore": 0,
     "costumeInspiration": "",
     "joinEveningContest": "no",
-    "wonPrize": true,
-    "wonPrizeName": "สร้อยคอทองคำหนัก 1 สลึง"
+    "wonPrize": false,
+    "wonPrizeName": null
   },
   {
     "id": "TOUR-012",
@@ -184,8 +184,8 @@
     "name": "เอกภพ บวรเกียรติ",
     "teamColor": "green",
     "busNumber": "รถบัสคันที่ 3 (ทะเบียน 30-5566)",
-    "foodClaimed": true,
-    "foodClaimedAt": "2026-11-06T11:58:30.000Z",
+    "foodClaimed": false,
+    "foodClaimedAt": null,
     "score": 75,
     "quizAnswered": true,
     "quizScore": 40,
@@ -206,8 +206,8 @@
     "quizScore": 0,
     "costumeInspiration": "ชุดเดรสซันฟลาวเวอร์ ลายดอกทานตะวัน",
     "joinEveningContest": "yes",
-    "wonPrize": true,
-    "wonPrizeName": "สร้อยคอทองคำหนัก 1 สลึง"
+    "wonPrize": false,
+    "wonPrizeName": null
   },
   {
     "id": "TOUR-015",
@@ -221,8 +221,8 @@
     "quizScore": 0,
     "costumeInspiration": "",
     "joinEveningContest": "no",
-    "wonPrize": true,
-    "wonPrizeName": "สร้อยคอทองคำหนัก 1 สลึง"
+    "wonPrize": false,
+    "wonPrizeName": null
   },
   {
     "id": "TOUR-016",
@@ -246,7 +246,7 @@
     "busNumber": "รถบัสคันที่ 3 (ทะเบียน 30-5566)",
     "foodClaimed": false,
     "foodClaimedAt": null,
-    "score": 125,
+    "score": 35,
     "quizAnswered": false,
     "quizScore": 0,
     "costumeInspiration": "",
@@ -261,7 +261,7 @@
     "busNumber": "รถบัสคันที่ 1 (ทะเบียน 30-1122)",
     "foodClaimed": false,
     "foodClaimedAt": null,
-    "score": 460,
+    "score": 70,
     "quizAnswered": false,
     "quizScore": 0,
     "costumeInspiration": "ชุดชาวเกาะฮาวายสีเทอร์ควอยซ์ ริมหาด",

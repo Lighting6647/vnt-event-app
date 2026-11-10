@@ -329,8 +329,33 @@ app.post('/api/participants', (req, res) => {
   };
 
   data.push(newParticipant);
-  saveDB(data);
+  saveDB(data, { action: 'add-participant', participant: newParticipant });
   res.json({ success: true, message: 'เพิ่มผู้ร่วมงานใหม่สำเร็จ', participant: newParticipant });
+});
+
+// DELETE single participant by ID
+app.delete('/api/participants/:id', (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ success: false, message: 'กรุณาระบุรหัสผู้ร่วมงาน' });
+  }
+
+  let data = loadDB();
+  const targetIndex = data.findIndex(p => p.id.toUpperCase() === id.toUpperCase());
+
+  if (targetIndex === -1) {
+    return res.status(404).json({ success: false, message: 'ไม่พบรหัสผู้ร่วมงานนี้ในระบบ' });
+  }
+
+  const removedParticipant = data[targetIndex];
+  data.splice(targetIndex, 1);
+  saveDB(data, { action: 'delete-participant', id: removedParticipant.id, name: removedParticipant.name });
+
+  res.json({
+    success: true,
+    message: `ลบรายชื่อ ${removedParticipant.name} (${removedParticipant.id}) เรียบร้อยแล้ว`,
+    deletedId: removedParticipant.id,
+  });
 });
 
 // Serve frontend if dist exists

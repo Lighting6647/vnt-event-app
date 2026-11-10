@@ -10,12 +10,14 @@ import {
   DownloadIcon,
   CheckCircleIcon,
   SparklesIcon,
+  TrashIcon,
 } from './ui/Icons';
 
 export default function AdminPanel({
   participants,
   onResetData,
   onAddParticipant,
+  onDeleteParticipant,
   onLockAdmin,
   onClaimFood,
   onAddScore,
@@ -33,6 +35,7 @@ export default function AdminPanel({
 
   // Custom non-blocking confirmation modal & toast state (Zero native alert/confirm)
   const [confirmModal, setConfirmModal] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
 
   const showToast = (text) => {
@@ -40,6 +43,16 @@ export default function AdminPanel({
     setTimeout(() => {
       setToastMessage((prev) => (prev === text ? null : prev));
     }, 3500);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
+    setDeleteTarget(null);
+    if (onDeleteParticipant) {
+      const res = await onDeleteParticipant(target.id);
+      showToast(res?.message || `ลบรายชื่อ ${target.name} เรียบร้อย`);
+    }
   };
 
   const filtered = participants.filter((p) => {
@@ -154,6 +167,50 @@ export default function AdminPanel({
                 className="px-4 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-500 text-white shadow-xs transition-colors cursor-pointer"
               >
                 ยืนยันการรีเซ็ต
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 bg-zinc-950/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="bg-white dark:bg-zinc-900 border border-red-500/30 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
+                <TrashIcon className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base sm:text-lg font-extrabold text-zinc-900 dark:text-zinc-50">
+                  ยืนยันการลบรายชื่อผู้ร่วมงาน
+                </h3>
+                <p className="text-xs text-zinc-500">
+                  {deleteTarget.id} • {deleteTarget.name}
+                </p>
+              </div>
+            </div>
+            <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              คุณแน่ใจหรือไม่ว่าต้องการลบรายชื่อ <strong>"{deleteTarget.name}"</strong> ออกจากระบบ? ข้อมูลคะแนนและสิทธิ์การรับอาหารจะถูกลบออกถาวร
+            </p>
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-500 text-white shadow-xs transition-colors cursor-pointer"
+              >
+                ยืนยันการลบ
               </button>
             </div>
           </div>
@@ -456,12 +513,13 @@ export default function AdminPanel({
                     <th className="py-3.5 px-4">คะแนน</th>
                     <th className="py-3.5 px-4">ประกวดชุด</th>
                     <th className="py-3.5 px-4">รางวัลที่ได้รับ</th>
+                    <th className="py-3.5 px-4 text-center">จัดการ</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/70">
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="text-center py-10 text-zinc-500">
+                      <td colSpan={9} className="text-center py-10 text-zinc-500">
                         ไม่พบรายชื่อผู้ร่วมงานที่ตรงกับเงื่อนไขการค้นหา
                       </td>
                     </tr>
@@ -530,6 +588,16 @@ export default function AdminPanel({
                             ) : (
                               <span className="text-zinc-400">-</span>
                             )}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <button
+                              type="button"
+                              onClick={() => setDeleteTarget(p)}
+                              title={`ลบรายชื่อ ${p.name}`}
+                              className="p-1.5 rounded-lg text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
+                            >
+                              <TrashIcon className="w-4 h-4" />
+                            </button>
                           </td>
                         </tr>
                       );

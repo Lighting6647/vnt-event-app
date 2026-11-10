@@ -330,6 +330,32 @@ export default function App() {
     saveState([...participants, p]);
   };
 
+  // Delete participant
+  const handleDeleteParticipant = async (id) => {
+    try {
+      const res = await fetch(`/api/participants/${id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        const updated = participants.filter((p) => p.id !== id);
+        saveState(updated);
+        if (selectedId === id && updated.length > 0) {
+          setSelectedId(updated[0].id);
+        }
+        return { success: true, message: data.message };
+      }
+      return { success: false, message: data.message || 'ลบข้อมูลไม่สำเร็จ' };
+    } catch {
+      const updated = participants.filter((p) => p.id !== id);
+      saveState(updated);
+      if (selectedId === id && updated.length > 0) {
+        setSelectedId(updated[0].id);
+      }
+      return { success: true, message: 'ลบรายชื่อสำเร็จ' };
+    }
+  };
+
   const handleUnlockAdmin = () => {
     setIsAdminUnlocked(true);
     setActiveTab('admin');
@@ -434,6 +460,7 @@ export default function App() {
                   participants={participants}
                   onResetData={handleResetData}
                   onAddParticipant={handleAddParticipant}
+                  onDeleteParticipant={handleDeleteParticipant}
                   onLockAdmin={handleLockAdmin}
                   onClaimFood={handleClaimFood}
                   onAddScore={handleAddScore}
