@@ -18,7 +18,11 @@ export default function DigitalPass({ participant, onOpenActivity, onOpenSchedul
   useEffect(() => {
     let active = true;
     if (participant?.id) {
-      QRCode.toDataURL(participant.id, {
+      // Build smart URL so smartphone camera can tap to open user's pass directly
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const smartUrl = `${origin}/?user=${encodeURIComponent(participant.id)}&tab=pass`;
+
+      QRCode.toDataURL(smartUrl, {
         width: 320,
         margin: 1.5,
         color: {

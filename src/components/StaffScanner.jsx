@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { playSuccess, playWarning } from '../utils/soundEffects';
 
-export default function StaffScanner({ participants, onClaimFood, onAddScore }) {
+export default function StaffScanner({ participants, onClaimFood, onAddScore, onNavigateTab }) {
   const [mode, setMode] = useState('food'); // 'food' or 'score'
   const [pointsToAdd, setPointsToAdd] = useState(20);
   const [scanResult, setScanResult] = useState(null);
@@ -52,7 +52,20 @@ export default function StaffScanner({ participants, onClaimFood, onAddScore }) 
   };
 
   const handleProcessCode = async (rawCode) => {
-    const cleanId = rawCode.trim().toUpperCase();
+    let cleanId = rawCode.trim();
+
+    // Support both smart URL (e.g. http://.../?user=TOUR-001) and plain ID (e.g. TOUR-001)
+    if (cleanId.includes('?')) {
+      try {
+        const urlObj = new URL(cleanId);
+        const u = urlObj.searchParams.get('user');
+        if (u) cleanId = u;
+      } catch {
+        const match = cleanId.match(/user=([^&]+)/i);
+        if (match) cleanId = match[1];
+      }
+    }
+    cleanId = cleanId.toUpperCase();
 
     if (mode === 'food') {
       const res = await onClaimFood(cleanId);
@@ -157,6 +170,26 @@ export default function StaffScanner({ participants, onClaimFood, onAddScore }) 
               {scanResult.participant && (
                 <div className="text-xs text-[#6e6e73] dark:text-[#a1a1a6] pt-1">
                   ชื่อ: {scanResult.participant.name} | ทีม: {scanResult.participant.teamColor} | รถ: {scanResult.participant.busNumber}
+                </div>
+              )}
+
+              {/* Quick Navigation Action Buttons after scan */}
+              {onNavigateTab && scanResult.success && (
+                <div className="pt-2 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onNavigateTab('leaderboard')}
+                    className="px-3 py-1 rounded-lg text-xs font-bold bg-[#0071e3] text-white hover:bg-[#0077ed] transition-colors cursor-pointer"
+                  >
+                    🏆 ไปดูตารางคะแนน 10 สี
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onNavigateTab('pass')}
+                    className="px-3 py-1 rounded-lg text-xs font-bold bg-black/10 dark:bg-white/10 text-[#1d1d1f] dark:text-white hover:bg-black/15 transition-colors cursor-pointer"
+                  >
+                    🪪 ดูบัตรดิจิทัล
+                  </button>
                 </div>
               )}
             </div>

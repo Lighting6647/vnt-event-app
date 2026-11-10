@@ -40,6 +40,24 @@ export default function App() {
   const [selectedId, setSelectedId] = useState('TOUR-001');
   const [activityModalUser, setActivityModalUser] = useState(null);
 
+  // Parse URL query params on mount (Auto-routing when scanning QR via smartphone camera)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const urlUser = params.get('user');
+      const urlTab = params.get('tab');
+
+      if (urlUser) {
+        setSelectedId(urlUser.toUpperCase());
+      }
+      if (urlTab) {
+        setActiveTab(urlTab);
+      }
+    } catch (e) {
+      console.warn('URL parsing error:', e);
+    }
+  }, []);
+
   // Sync to backend if running (with Real-time SSE support)
   useEffect(() => {
     // 1. Initial fetch
@@ -422,6 +440,7 @@ export default function App() {
                   participants={participants}
                   onClaimFood={handleClaimFood}
                   onAddScore={handleAddScore}
+                  onNavigateTab={(tab) => setActiveTab(tab)}
                 />
               )}
 
@@ -465,6 +484,7 @@ export default function App() {
                   onClaimFood={handleClaimFood}
                   onAddScore={handleAddScore}
                   onAwardPrize={handleAwardPrize}
+                  onNavigateTab={(tab) => setActiveTab(tab)}
                 />
               )}
             </Suspense>

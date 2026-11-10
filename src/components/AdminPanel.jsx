@@ -22,6 +22,7 @@ export default function AdminPanel({
   onClaimFood,
   onAddScore,
   onAwardPrize,
+  onNavigateTab,
 }) {
   const [adminTab, setAdminTab] = useState('luckydraw');
   const [searchTerm, setSearchTerm] = useState('');
@@ -320,6 +321,7 @@ export default function AdminPanel({
             participants={participants}
             onClaimFood={onClaimFood}
             onAddScore={onAddScore}
+            onNavigateTab={onNavigateTab}
           />
         </div>
       )}
