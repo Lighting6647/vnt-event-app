@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code สแกนเข้าแอปงานทัวร์ KoniX 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #09090b;
+      color: #fafafa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 30px 15px;
+    }
+    .poster-container {
+      width: 100%;
+      max-width: 680px;
+      background: linear-gradient(145deg, #18181b 0%, #09090b 100%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 36px;
+      padding: 48px 40px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(16, 185, 129, 0.08);
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+    }
+    /* Subtle background ambient glows */
+    .glow-top {
+      position: absolute;
+      top: -120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 400px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .glow-bottom {
+      position: absolute;
+      bottom: -100px;
+      right: -50px;
+      width: 300px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .badge-event {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.25;
+      color: #ffffff;
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
+    .subtitle {
+      font-size: 15px;
+      color: #a1a1aa;
+      margin-bottom: 32px;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    /* QR Code Card */
+    .qr-card-wrapper {
+      position: relative;
+      background: #ffffff;
+      border-radius: 28px;
+      padding: 24px;
+      width: 340px;
+      margin: 0 auto 28px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    .qr-card-wrapper img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 16px;
+    }
+    .qr-scan-badge {
+      position: absolute;
+      bottom: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #09090b;
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 4px 16px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    /* URL pill */
+    .url-display {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 10px 20px;
+      border-radius: 14px;
+      font-family: 'Plus Jakarta Sans', monospace;
+      font-size: 14px;
+      color: #e4e4e7;
+      font-weight: 600;
+      margin-bottom: 32px;
+    }
+    .url-icon {
+      color: #10b981;
+    }
+
+    /* 3 Step Instruction Guide */
+    .steps-grid {
+      display: grid;
+      grid-cols: 3;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 32px;
+      text-align: left;
+    }
+    .step-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 20px;
+      padding: 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .step-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #f4f4f5;
+      line-height: 1.3;
+    }
+    .step-desc {
+      font-size: 11px;
+      color: #71717a;
+      line-height: 1.4;
+    }
+
+    /* Footer Organizer info */
+    .poster-footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #71717a;
+      font-size: 12px;
+    }
+    .footer-brand {
+      font-weight: 700;
+      color: #a1a1aa;
+    }
+
+    /* Print settings */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+      }
+      .poster-container {
+        background: #ffffff !important;
+        border: 2px solid #000000 !important;
+        box-shadow: none !important;
+        color: #000000 !important;
+        max-width: 100% !important;
+        padding: 30px !important;
+      }
+      h1 { color: #000000 !important; }
+      .subtitle, .url-display, .step-desc, .poster-footer { color: #444444 !important; }
+      .badge-event {
+        background: #f0fdf4 !important;
+        border-color: #10b981 !important;
+        color: #059669 !important;
+      }
+      .qr-card-wrapper {
+        border: 2px solid #18181b !important;
+        box-shadow: none !important;
+      }
+      .qr-scan-badge {
+        background: #000000 !important;
+        color: #ffffff !important;
+      }
+      .step-item {
+        background: #f4f4f5 !important;
+        border: 1px solid #e4e4e7 !important;
+      }
+      .step-title { color: #18181b !important; }
+      .glow-top, .glow-bottom { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="poster-container">
+    <div class="glow-top"></div>
+    <div class="glow-bottom"></div>
+
+    <!-- Event Tag -->
+    <div class="badge-event">
+      <span class="badge-dot"></span>
+      KoniX Meet the Jungle • 25–26 ธ.ค. 2569
+    </div>
+
+    <!-- Main Title -->
+    <h1>สแกนเพื่อเข้าใช้งานแอปพลิเคชัน</h1>
+    <p class="subtitle">
+      ระบบจัดการงานทัวร์ บัตรประจำตัวดิจิทัล กิจกรรมคะแนน 10 สี และการสุ่มรางวัล
+    </p>
+
+    <!-- Large QR Code Frame -->
+    <div class="qr-card-wrapper">
+      <img src="app_access_qr_code.png" alt="QR Code สแกนเข้าแอปทัวร์ VNT & KoniX">
+      <div class="qr-scan-badge">
+        SCAN ME • สแกนได้ทันที
+      </div>
+    </div>
+
+    <!-- Direct URL -->
+    <div class="url-display">
+      <span class="url-icon">🌐</span>
+      <span>vnt-event-app-27qo-rho.vercel.app</span>
+    </div>
+
+    <!-- 3-Step Instruction -->
+    <div class="steps-grid">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div class="step-title">เปิดกล้อง / LINE</div>
+        <div class="step-desc">ใช้กล้องมือถือหรือฟังก์ชันสแกนในแอป LINE ส่องที่ QR Code</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div class="step-title">ค้นหาชื่อตนเอง</div>
+        <div class="step-desc">พิมพ์ค้นหาชื่อหรือรหัสพนักงานที่มุมขวาบนของหน้าเว็บ</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div class="step-title">แคปหน้าจอบัตร</div>
+        <div class="step-desc">บันทึกภาพบัตรดิจิทัลไว้ใช้ยื่นรับอาหารและสะสมคะแนน</div>
+      </div>
+    </div>
+
+    <!-- Footer Credit -->
+    <div class="poster-footer">
+      <span class="footer-brand">KoniX (Thailand) Co., Ltd.</span>
+      <span>จัดโดย VNT Event Organizer Co., Ltd.</span>
+    </div>
+  </div>
+
+</body>
+</html>
