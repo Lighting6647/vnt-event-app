@@ -1,16 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import BrandLogo from './BrandLogo';
+import { TEAM_COLORS } from '../utils/mockData';
 import {
   PassIcon,
   RouteIcon,
-  BusIcon,
-  GridPuzzleIcon,
   ChartIcon,
-  ShieldLockIcon,
   SunIcon,
   MoonIcon,
-  SearchIcon,
-  XIcon,
 } from './ui/Icons';
 
 export default function AppleNavbar({
@@ -18,57 +14,47 @@ export default function AppleNavbar({
   setActiveTab,
   participants,
   selectedId,
-  setSelectedId,
   isDark,
   setIsDark,
   isAdminUnlocked,
   setIsAdminModalOpen,
 }) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const searchDropdownRef = useRef(null);
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target)) {
-        setIsSearchOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const filteredParticipants = searchQuery.trim()
-    ? participants.filter((p) => {
-        const q = searchQuery.toLowerCase();
-        return (
-          p.name?.toLowerCase().includes(q) ||
-          p.id?.toLowerCase().includes(q) ||
-          p.busNumber?.toLowerCase().includes(q) ||
-          p.teamColor?.toLowerCase().includes(q)
-        );
-      })
-    : participants;
-
   const currentPerson = participants.find((p) => p.id === selectedId) || participants[0];
+  const team = (currentPerson && TEAM_COLORS.find(t => t.id === currentPerson.teamColor)) || TEAM_COLORS[0];
 
+  // Secret admin access: 3 quick taps on brand logo
+  const logoTapCountRef = useRef(0);
+  const logoTapTimerRef = useRef(null);
+
+  const handleLogoTap = () => {
+    logoTapCountRef.current += 1;
+    if (logoTapTimerRef.current) clearTimeout(logoTapTimerRef.current);
+
+    if (logoTapCountRef.current >= 3) {
+      logoTapCountRef.current = 0;
+      if (!isAdminUnlocked && setIsAdminModalOpen) {
+        setIsAdminModalOpen(true);
+      } else if (isAdminUnlocked) {
+        setActiveTab('admin');
+      }
+      return;
+    }
+
+    logoTapTimerRef.current = setTimeout(() => {
+      logoTapCountRef.current = 0;
+    }, 1200);
+
+    setActiveTab('pass');
+  };
+
+  // Public Categories: strictly attendee-facing tabs (No Admin in public shelf)
   const categories = [
     { id: 'schedule', name: 'กำหนดการ', Icon: RouteIcon, desc: '25–26 ธ.ค. 69' },
     { id: 'pass', name: 'บัตรดิจิทัล', Icon: PassIcon, desc: 'QR ประจำตัว' },
     { id: 'leaderboard', name: 'คะแนน 10 สี', Icon: ChartIcon, desc: 'อัปเดตสด' },
-    {
-      id: 'admin',
-      name: 'ผู้ดูแลระบบ',
-      Icon: (props) => <ShieldLockIcon {...props} unlocked={isAdminUnlocked} />,
-      desc: isAdminUnlocked ? 'ปลดล็อกแล้ว' : 'เฉพาะสตาฟ',
-    },
   ];
 
   const handleCategoryClick = (catId) => {
-    if (catId === 'admin' && !isAdminUnlocked) {
-      setIsAdminModalOpen(true);
-      return;
-    }
     setActiveTab(catId);
   };
 
@@ -78,11 +64,13 @@ export default function AppleNavbar({
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/90 dark:bg-zinc-950/90 border-b border-zinc-200/80 dark:border-white/[0.08] transition-colors py-2 sm:py-2.5">
         <div className="max-w-6xl mx-auto px-3 sm:px-6 flex items-center justify-between gap-2 text-xs">
           
-          {/* Brand Identity */}
+          {/* Brand Identity with Secret Admin Access */}
           <div className="flex items-center gap-3 min-w-0">
             <button
-              onClick={() => setActiveTab('pass')}
-              className="flex items-center hover:opacity-90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg transition-all min-w-0"
+              type="button"
+              onClick={handleLogoTap}
+              className="flex items-center hover:opacity-90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg transition-all min-w-0 cursor-pointer"
+              title="VNT Event App (แตะ 3 ครั้งเพื่อเข้าสู่ระบบแอดมิน)"
             >
               <BrandLogo size="md" showSubtitle={true} />
             </button>
@@ -92,88 +80,20 @@ export default function AppleNavbar({
             </span>
           </div>
 
-          {/* Right Controls: Participant Quick Search & Theme Toggle */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Quick Search Popover */}
-            <div className="relative" ref={searchDropdownRef}>
-              <button
-                type="button"
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200/70 dark:hover:bg-zinc-800/80 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border border-zinc-200/80 dark:border-white/[0.08] transition-all max-w-[150px] xs:max-w-[190px] sm:max-w-[260px] text-left cursor-pointer"
-              >
-                <SearchIcon className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                <div className="min-w-0 flex-1 truncate">
-                  <span className="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate block">
-                    {currentPerson ? `${currentPerson.name}` : 'เลือกผู้ร่วมงาน'}
-                  </span>
-                </div>
-                <span className="text-[10px] text-zinc-400 font-mono hidden sm:inline shrink-0">
-                  {currentPerson?.id}
-                </span>
-              </button>
-
-              {/* Search Dropdown Modal */}
-              {isSearchOpen && (
-                <div className="absolute right-0 mt-2 w-72 sm:w-84 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="relative mb-2">
-                    <SearchIcon className="w-4 h-4 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      autoFocus
-                      placeholder="ค้นหาชื่อ, รหัส, คันรถ (เช่น คันที่ 2)..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-8 pr-7 py-1.5 text-xs bg-zinc-100 dark:bg-zinc-800/90 text-zinc-900 dark:text-zinc-100 rounded-xl border border-transparent focus:border-emerald-500 focus:outline-none"
-                    />
-                    {searchQuery && (
-                      <button
-                        onClick={() => setSearchQuery('')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
-                      >
-                        <XIcon className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="max-h-60 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                    {filteredParticipants.length > 0 ? (
-                      filteredParticipants.map((p) => {
-                        const isSelected = p.id === selectedId;
-                        return (
-                          <button
-                            key={p.id}
-                            type="button"
-                            onClick={() => {
-                              setSelectedId(p.id);
-                              setIsSearchOpen(false);
-                              setSearchQuery('');
-                            }}
-                            className={`w-full text-left px-2.5 py-1.5 rounded-xl flex items-center justify-between text-xs transition-colors cursor-pointer ${
-                              isSelected
-                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20'
-                                : 'hover:bg-zinc-100 dark:hover:bg-zinc-800/70 text-zinc-700 dark:text-zinc-300'
-                            }`}
-                          >
-                            <div className="min-w-0 flex-1">
-                              <div className="truncate font-medium">{p.name}</div>
-                              <div className="text-[10px] text-zinc-400 truncate">
-                                {p.busNumber} • ทีม{p.teamColor}
-                              </div>
-                            </div>
-                            <span className="text-[10px] font-mono shrink-0 ml-2 px-1.5 py-0.5 rounded bg-zinc-200/50 dark:bg-zinc-800">
-                              {p.id}
-                            </span>
-                          </button>
-                        );
-                      })
-                    ) : (
-                      <div className="py-4 text-center text-xs text-zinc-400">
-                        ไม่พบข้อมูลที่ตรงกับการค้นหา
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+          {/* Right Controls: Attendee Own Identity Badge (No Public Search Bar) & Theme Toggle */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Attendee Personal Identity Badge */}
+            <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-zinc-200/80 dark:border-white/[0.08] select-none shadow-xs">
+              <span
+                className="w-2.5 h-2.5 rounded-full shrink-0 animate-pulse"
+                style={{ backgroundColor: team?.hex || '#10b981' }}
+              />
+              <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate max-w-[120px] xs:max-w-[160px] sm:max-w-[220px]">
+                {currentPerson?.name || 'ผู้ร่วมงาน'}
+              </span>
+              <span className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-md bg-zinc-200/70 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 shrink-0">
+                {currentPerson?.id}
+              </span>
             </div>
 
             <button

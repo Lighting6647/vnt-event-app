@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import AppleNavbar from './components/AppleNavbar';
 import DigitalPass from './components/DigitalPass';
 import ActivityModal from './components/ActivityModal';
@@ -8,6 +8,7 @@ import PwaInstallPrompt from './components/PwaInstallPrompt';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 import { ShieldLockIcon } from './components/ui/Icons';
 import { SEED_PARTICIPANTS } from './utils/mockData';
+import { playSuccess, playFanfare } from './utils/soundEffects';
 
 const TripSchedule = lazy(() => import('./components/TripSchedule'));
 const BusActivities = lazy(() => import('./components/BusActivities'));
@@ -51,12 +52,35 @@ export default function App() {
     try {
       const params = new URLSearchParams(window.location.search);
       const urlUser = params.get('user');
-      if (urlUser) return urlUser.toUpperCase();
+      if (urlUser) {
+        const cleanUser = urlUser.toUpperCase();
+        try {
+          localStorage.setItem('vnt_my_user_id', cleanUser);
+        } catch {}
+        return cleanUser;
+      }
+      const savedUser = localStorage.getItem('vnt_my_user_id');
+      if (savedUser) return savedUser;
     } catch {}
     return SEED_PARTICIPANTS[0]?.id || '500';
   });
   const [activityModalUser, setActivityModalUser] = useState(null);
   const [foodClaimedAlert, setFoodClaimedAlert] = useState(null);
+  const [scoreAlert, setScoreAlert] = useState(null);
+
+  const selectedIdRef = useRef(selectedId);
+  const participantsRef = useRef(participants);
+
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+    try {
+      localStorage.setItem('vnt_my_user_id', selectedId);
+    } catch {}
+  }, [selectedId]);
+
+  useEffect(() => {
+    participantsRef.current = participants;
+  }, [participants]);
 
   // Parse URL query params on mount (Auto-routing when scanning QR via smartphone camera)
   useEffect(() => {
@@ -66,7 +90,11 @@ export default function App() {
       const urlTab = params.get('tab');
 
       if (urlUser) {
-        setSelectedId(urlUser.toUpperCase());
+        const cleanUser = urlUser.toUpperCase();
+        setSelectedId(cleanUser);
+        try {
+          localStorage.setItem('vnt_my_user_id', cleanUser);
+        } catch {}
       }
       if (urlTab) {
         setActiveTab(urlTab);
@@ -75,6 +103,15 @@ export default function App() {
       console.warn('URL parsing error:', e);
     }
   }, []);
+
+  // Auto-dismiss score alert after 6 seconds
+  useEffect(() => {
+    if (!scoreAlert) return;
+    const timer = setTimeout(() => {
+      setScoreAlert(null);
+    }, 6000);
+    return () => clearTimeout(timer);
+  }, [scoreAlert]);
 
   // Sync to backend if running (with Real-time SSE support)
   useEffect(() => {
@@ -104,17 +141,59 @@ export default function App() {
               saveState(sanitized);
             }
 
-            // Instant In-App Food Claim Notification for the active user
-            if (payload.event && payload.event.action === 'claim-food') {
-              if (payload.event.targetId && payload.event.targetId.toUpperCase() === selectedId.toUpperCase()) {
-                setFoodClaimedAlert({
-                  title: '🥪 รับอาหารเช้าสำเร็จเรียบร้อย!',
-                  message: `ขอให้อร่อยกับมื้อเช้าค่ะ คุณ ${payload.event.name || ''}`,
-                  time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
-                });
-                try {
-                  navigator.vibrate?.([200, 100, 200]);
-                } catch {}
+            if (payload.event) {
+              const ev = payload.event;
+              const myId = (selectedIdRef.current || '').toUpperCase();
+              const myParticipant = (participantsRef.current || []).find(
+                (p) => p && p.id && p.id.toUpperCase() === myId
+              );
+
+              // 1. Point award to individual user
+              if (ev.action === 'add-score-user' && ev.targetId) {
+                if (ev.targetId.toUpperCase() === myId) {
+                  playFanfare();
+                  try {
+                    navigator.vibrate?.([150, 80, 150]);
+                  } catch {}
+                  setScoreAlert({
+                    title: `🎉 คุณได้รับแต้มเพิ่ม +${ev.points} คะแนน!`,
+                    message: `ขอแสดงความยินดีด้วยค่ะ คณะผู้จัดงานได้เติมคะแนนให้คุณ (${ev.name || myId}) เรียบร้อยแล้ว`,
+                    points: ev.points,
+                    time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+                  });
+                }
+              }
+
+              // 2. Point award to team
+              else if (ev.action === 'add-score-team' && ev.teamColor) {
+                const myTeam = myParticipant?.teamColor;
+                if (myTeam && myTeam.toLowerCase() === ev.teamColor.toLowerCase()) {
+                  playFanfare();
+                  try {
+                    navigator.vibrate?.([150, 80, 150]);
+                  } catch {}
+                  setScoreAlert({
+                    title: `🏆 ทีมของคุณได้รับ +${ev.points} คะแนน!`,
+                    message: `ทีม${ev.teamColor} ได้รับคะแนนสะสมพิเศษจากคณะผู้จัดงาน (${ev.reason || 'ภารกิจกิจกรรม'})`,
+                    points: ev.points,
+                    time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+                  });
+                }
+              }
+
+              // 3. Instant In-App Food Claim Notification for the active user
+              else if (ev.action === 'claim-food' && ev.targetId) {
+                if (ev.targetId.toUpperCase() === myId) {
+                  playSuccess();
+                  setFoodClaimedAlert({
+                    title: '🥪 รับอาหารเช้าสำเร็จเรียบร้อย!',
+                    message: `ขอให้อร่อยกับมื้อเช้าค่ะ คุณ ${ev.name || ''}`,
+                    time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+                  });
+                  try {
+                    navigator.vibrate?.([200, 100, 200]);
+                  } catch {}
+                }
               }
             }
           }
@@ -537,6 +616,37 @@ export default function App() {
           onClose={() => setActivityModalUser(null)}
           onSave={handleSaveActivity}
         />
+
+        {/* Real-time Score Notification Toast Banner */}
+        {scoreAlert && (
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92%] animate-in slide-in-from-top-4 fade-in duration-300 pointer-events-auto">
+            <div className="bg-gradient-to-r from-amber-500 via-emerald-600 to-teal-500 p-[2px] rounded-3xl shadow-2xl">
+              <div className="bg-zinc-950/95 backdrop-blur-md rounded-[22px] p-4 sm:p-5 text-white flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-amber-400/20 border border-amber-400/30 flex items-center justify-center text-2xl shrink-0 animate-bounce">
+                  ✨
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1">
+                    <h4 className="text-sm font-extrabold text-amber-300 tracking-tight">
+                      {scoreAlert.title}
+                    </h4>
+                    <span className="text-[10px] font-mono text-zinc-400">{scoreAlert.time} น.</span>
+                  </div>
+                  <p className="text-xs text-zinc-300 mt-0.5 line-clamp-2">
+                    {scoreAlert.message}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setScoreAlert(null)}
+                  className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Real-time In-App Food Claim Notification Modal */}
         {foodClaimedAlert && (

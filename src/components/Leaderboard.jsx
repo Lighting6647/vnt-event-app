@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { TEAM_COLORS } from '../utils/mockData';
-import { UsersIcon, UtensilsIcon, TrophyIcon } from './ui/Icons';
+import { UsersIcon, UtensilsIcon, TrophyIcon, SearchIcon, XIcon } from './ui/Icons';
 
 export default function Leaderboard({ participants }) {
+  const [searchQuery, setSearchQuery] = useState('');
   const teamStats = useMemo(() => {
     const map = {};
     TEAM_COLORS.forEach(t => {
@@ -33,6 +34,20 @@ export default function Leaderboard({ participants }) {
   const totalFoodClaimed = participants.filter(p => p.foodClaimed).length;
   const totalContestants = participants.filter(p => p.joinEveningContest === 'yes').length;
 
+  const filteredParticipants = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase().trim();
+    return (participants || []).filter((p) => {
+      if (!p) return false;
+      return (
+        (p.name && p.name.toLowerCase().includes(q)) ||
+        (p.id && p.id.toLowerCase().includes(q)) ||
+        (p.teamColor && p.teamColor.toLowerCase().includes(q)) ||
+        (p.busNumber && p.busNumber.toLowerCase().includes(q))
+      );
+    });
+  }, [participants, searchQuery]);
+
   return (
     <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8">
       
@@ -48,7 +63,7 @@ export default function Leaderboard({ participants }) {
               ตารางคะแนนการแข่งขัน 10 สี
             </h2>
             <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 max-w-xl">
-              สรุปคะแนนสะสมจากกิจกรรมบนรถบัส เกมจับผิดภาพ และคะแนนภารกิจทีมจากสตาฟฟ์
+              สรุปคะแนนสะสมแบบเรียลไทม์ และค้นหาคะแนนรายบุคคลหรือทีมสีได้ทันที
             </p>
           </div>
 
@@ -61,40 +76,96 @@ export default function Leaderboard({ participants }) {
         </div>
       </div>
 
-      {/* Quick Metrics Bar */}
-      <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
-        <div className="bg-white dark:bg-zinc-900/90 p-3.5 sm:p-5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs">
-          <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400">
-            <span className="text-xs sm:text-sm font-semibold">ผู้ร่วมงานทั้งหมด</span>
-            <UsersIcon className="w-4 h-4 shrink-0" />
+      {/* Upgraded Search & Metrics Hub */}
+      <div className="bg-white dark:bg-zinc-900/90 p-4 sm:p-5 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* Integrated Search Input */}
+          <div className="relative flex-1">
+            <SearchIcon className="w-4 h-4 text-emerald-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="ค้นหาคะแนน: พิมพ์ชื่อพนักงาน, รหัส, ทีมสี หรือคันรถ..."
+              className="w-full pl-10 pr-9 py-2.5 text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 transition-all"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+              >
+                <XIcon className="w-4 h-4" />
+              </button>
+            )}
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums text-zinc-900 dark:text-zinc-50 mt-1.5 tracking-tight">
-            {totalParticipants}{' '}
-            <span className="text-xs sm:text-sm font-sans text-zinc-500 font-medium">คน</span>
+
+          {/* Compact Overview Stats */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 shrink-0 text-xs font-mono">
+            <div className="px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5 whitespace-nowrap">
+              <UsersIcon className="w-3.5 h-3.5 text-sky-500" />
+              <span>{totalParticipants} ท่าน</span>
+            </div>
+            <div className="px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 whitespace-nowrap font-bold">
+              <UtensilsIcon className="w-3.5 h-3.5" />
+              <span>อาหาร {totalFoodClaimed}</span>
+            </div>
+            <div className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 flex items-center gap-1.5 whitespace-nowrap font-bold">
+              <TrophyIcon className="w-3.5 h-3.5" />
+              <span>ชุด {totalContestants}</span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900/90 p-3.5 sm:p-5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs">
-          <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400">
-            <span className="text-xs sm:text-sm font-semibold">รับอาหารเช้าแล้ว</span>
-            <UtensilsIcon className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-          </div>
-          <div className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums text-emerald-600 dark:text-emerald-400 mt-1.5 tracking-tight">
-            {totalFoodClaimed}{' '}
-            <span className="text-xs sm:text-sm font-sans text-zinc-500 font-medium">คน</span>
-          </div>
-        </div>
+        {/* Live Search Results Display */}
+        {searchQuery.trim() && (
+          <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/80 space-y-2">
+            <div className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 flex items-center justify-between">
+              <span>ผลการค้นหา ({filteredParticipants.length} รายการ)</span>
+              <span className="text-[11px]">พิมพ์ชื่อหรือรหัสเพื่อเจาะจง</span>
+            </div>
 
-        <div className="bg-white dark:bg-zinc-900/90 p-3.5 sm:p-5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs">
-          <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400">
-            <span className="text-xs sm:text-sm font-semibold">ลงประกวดชุดค่ำ</span>
-            <TrophyIcon className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            {filteredParticipants.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-64 overflow-y-auto pr-1">
+                {filteredParticipants.map((p) => {
+                  const team = TEAM_COLORS.find((t) => t.id === p.teamColor) || { name: p.teamColor, hex: '#10b981' };
+                  return (
+                    <div
+                      key={p.id}
+                      className="p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-950/70 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between gap-3 shadow-2xs"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                          {p.name}
+                        </div>
+                        <div className="text-[11px] text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 mt-0.5">
+                          <span
+                            className="w-2 h-2 rounded-full shrink-0"
+                            style={{ backgroundColor: team.hex }}
+                          />
+                          <span className="font-medium truncate">{team.name}</span>
+                          <span>•</span>
+                          <span className="font-mono">{p.id}</span>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <div className="text-sm sm:text-base font-extrabold font-mono text-emerald-600 dark:text-emerald-400">
+                          {p.score || 0}
+                        </div>
+                        <div className="text-[10px] text-zinc-400 font-sans">คะแนน</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-6 text-center text-xs text-zinc-400 bg-zinc-50/50 dark:bg-zinc-950/30 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
+                ไม่พบรายชื่อหรือทีมสีที่ตรงกับคำค้นหา "{searchQuery}"
+              </div>
+            )}
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums text-amber-600 dark:text-amber-400 mt-1.5 tracking-tight">
-            {totalContestants}{' '}
-            <span className="text-xs sm:text-sm font-sans text-zinc-500 font-medium">คน</span>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Top 3 Podium */}

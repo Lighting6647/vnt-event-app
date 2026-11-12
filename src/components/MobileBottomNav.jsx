@@ -19,7 +19,6 @@ export default function MobileBottomNav({
     { id: 'schedule', name: 'กำหนดการ', Icon: RouteIcon },
     { id: 'pass', name: 'บัตร', Icon: PassIcon },
     { id: 'leaderboard', name: 'คะแนน', Icon: ChartIcon },
-    { id: 'admin', name: 'Admin', Icon: ShieldLockIcon, unlocked: isAdminUnlocked },
   ];
 
   const handleTabClick = (tabId) => {

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DEFAULT_QUIZZES } from '../utils/mockData';
-import { playSuccess } from '../utils/soundEffects';
+import { playSuccess, playWarning } from '../utils/soundEffects';
 
 export default function ActivityModal({ participant, isOpen, onClose, onSave }) {
   if (!isOpen || !participant) return null;
@@ -13,6 +13,47 @@ export default function ActivityModal({ participant, isOpen, onClose, onSave }) 
   // Contest states
   const [costumeInspiration, setCostumeInspiration] = useState(participant.costumeInspiration || '');
   const [joinEveningContest, setJoinEveningContest] = useState(participant.joinEveningContest || 'yes');
+  const [bypassTimer, setBypassTimer] = useState(false); // Admin test mode
+
+  // Live Countdown Timer for Contest Registration (Window: 08:00 – 13:00)
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const getContestTimeStatus = () => {
+    if (bypassTimer) return { status: 'open', label: 'โหมดทดสอบ (เปิดตลอดเวลา)', remaining: 'เปิดตลอด' };
+    const h = currentTime.getHours();
+    const m = currentTime.getMinutes();
+    const s = currentTime.getSeconds();
+    const currentSeconds = h * 3600 + m * 60 + s;
+
+    const startSeconds = 8 * 3600; // 08:00:00
+    const endSeconds = 13 * 3600; // 13:00:00
+
+    if (currentSeconds < startSeconds) {
+      const diff = startSeconds - currentSeconds;
+      const hh = String(Math.floor(diff / 3600)).padStart(2, '0');
+      const mm = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+      const ss = String(diff % 60).padStart(2, '0');
+      return { status: 'before', label: `เปิดรับสมัครเวลา 08:00 น. (อีก ${hh}:${mm}:${ss})`, remaining: `${hh}:${mm}:${ss}` };
+    }
+
+    if (currentSeconds >= endSeconds) {
+      return { status: 'closed', label: 'ปิดรับสมัครประกวดชุดแล้ว (13:00 น.)', remaining: '00:00:00' };
+    }
+
+    const diff = endSeconds - currentSeconds;
+    const hh = String(Math.floor(diff / 3600)).padStart(2, '0');
+    const mm = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+    const ss = String(diff % 60).padStart(2, '0');
+    return { status: 'open', label: `เปิดรับสมัครประกวดชุด (เหลือเวลาอีก ${hh}:${mm}:${ss})`, remaining: `${hh}:${mm}:${ss}` };
+  };
+
+  const contestTime = getContestTimeStatus();
+  const isContestDisabled = contestTime.status !== 'open';
 
   const handleSelectOption = (quizId, optIndex) => {
     if (quizSubmitted) return;
@@ -151,27 +192,65 @@ export default function ActivityModal({ participant, isOpen, onClose, onSave }) 
           )}
         </div>
 
-        {/* 2. คำถามประกวดเรื่องชุด & แรงบันดาลใจ */}
-        <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3">
-          <h4 className="text-sm font-bold text-white flex items-center gap-2">
-            <span className="w-6 h-6 rounded-lg bg-pink-500/20 text-pink-400 border border-pink-500/30 flex items-center justify-center text-xs">
-              2
-            </span>
-            คำถามประกวดชุด & แรงบันดาลใจในการใส่ชุดนี้
-          </h4>
+        {/* 2. คำถามประกวดเรื่องชุด & แรงบันดาลใจ พร้อมระบบจับเวลา 08:00 - 13:00 น. */}
+        <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+            <h4 className="text-sm font-bold text-white flex items-center gap-2">
+              <span className="w-6 h-6 rounded-lg bg-pink-500/20 text-pink-400 border border-pink-500/30 flex items-center justify-center text-xs">
+                2
+              </span>
+              <span>คำถามประกวดชุด & ลงทะเบียนแข่งขัน</span>
+            </h4>
+
+            {/* Live Countdown Timer Status Pill */}
+            <div className="flex items-center gap-2">
+              <span
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border font-mono ${
+                  contestTime.status === 'open'
+                    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 animate-pulse'
+                    : contestTime.status === 'before'
+                    ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                    : 'bg-red-500/15 text-red-300 border-red-500/30'
+                }`}
+              >
+                <span>⏱️ {contestTime.label}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setBypassTimer(!bypassTimer)}
+                className="text-[10px] text-slate-500 hover:text-slate-300 underline font-mono"
+                title="สลับโหมดทดสอบเปิดรับสมัครตลอดเวลา"
+              >
+                {bypassTimer ? 'ปิดโหมดทดสอบ' : 'โหมดทดสอบ'}
+              </button>
+            </div>
+          </div>
+
           <p className="text-xs text-slate-400">
-            โปรดบรรยายแนวคิด คอนเซปต์ หรือความหมายของชุดที่คุณเลือกใส่มางานทัวร์วันนี้ เพื่อนำไปขึ้นจอแนะนำตัวในงานเลี้ยง
+            เปิดรับข้อมูลเฉพาะช่วงเวลา <strong>08:00 – 13:00 น.</strong> เพื่อนำคอนเซปต์และแรงบันดาลใจของคุณไปขึ้นจอแสดงบนเวทีช่วงค่ำ
           </p>
-          <textarea
-            value={costumeInspiration}
-            onChange={(e) => setCostumeInspiration(e.target.value)}
-            rows={3}
-            placeholder="ตัวอย่าง: ธีมฮาวายสีฟ้าสดใส เข้ากับลมทะเล และช่วยเติมพลังความสดชื่นให้เพื่อนร่วมทีม..."
-            className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-pink-500 transition-colors"
-          />
+
+          {isContestDisabled ? (
+            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-center space-y-1">
+              <span className="text-sm font-bold text-red-400 block">
+                {contestTime.status === 'before' ? '⏳ ระบบจะเปิดรับสมัครเวลา 08:00 น.' : '🔒 หมดเวลารับสมัครประกวดชุดแล้ว (ปิดเวลา 13:00 น.)'}
+              </span>
+              <p className="text-xs text-slate-400">
+                {contestTime.status === 'before' ? 'โปรดรอเปิดระบบบนรถบัสตามเวลาที่กำหนด' : 'หากต้องการแก้ไขเร่งด่วน โปรดติดต่อสตาฟฟ์ VNT ประจำรถบัส'}
+              </p>
+            </div>
+          ) : (
+            <textarea
+              value={costumeInspiration}
+              onChange={(e) => setCostumeInspiration(e.target.value)}
+              rows={3}
+              placeholder="ตัวอย่าง: ธีมฮาวายสีฟ้าสดใส เข้ากับลมทะเล และช่วยเติมพลังความสดชื่นให้เพื่อนร่วมทีม..."
+              className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-pink-500 transition-colors"
+            />
+          )}
         </div>
 
-        {/* 4. คำถามปิดท้ายว่าจะมีการประกวดชุดตอนช่วงเย็น คุณต้องการเข้าร่วมหรือไม่ */}
+        {/* 3. คำถามปิดท้ายว่าจะมีการประกวดชุดตอนช่วงเย็น คุณต้องการเข้าร่วมหรือไม่ */}
         <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3">
           <h4 className="text-sm font-bold text-white flex items-center gap-2">
             <span className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-xs">
@@ -180,30 +259,32 @@ export default function ActivityModal({ participant, isOpen, onClose, onSave }) 
             คำถามปิดท้าย: ยืนยันเข้าร่วมประกวดชุดช่วงเย็น?
           </h4>
           <p className="text-xs text-slate-400">
-            จะมีการประกวดชุดแฟชั่นโชว์บนเวทีช่วงเย็น คุณต้องการเข้าร่วมการประกวดชิงรางวัลใหญ่หรือไม่?
+            จะมีการประกวดชุดแฟชั่นโชว์บนเวทีช่วงเย็น คุณต้องการเข้าร่วมการประกวดชิงรางวัลใหญ่หรือไม่? (ปิดรับเวลา 13:00 น.)
           </p>
 
           <div className="grid grid-cols-2 gap-3 pt-1">
             <button
               type="button"
+              disabled={isContestDisabled}
               onClick={() => setJoinEveningContest('yes')}
               className={`p-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all ${
                 joinEveningContest === 'yes'
                   ? 'bg-emerald-600 text-white border-emerald-500 shadow-lg shadow-emerald-600/30 ring-2 ring-emerald-400/30'
                   : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'
-              }`}
+              } ${isContestDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
               <span>🎉</span> ต้องการเข้าร่วมประกวดชุด
             </button>
 
             <button
               type="button"
+              disabled={isContestDisabled}
               onClick={() => setJoinEveningContest('no')}
               className={`p-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all ${
                 joinEveningContest === 'no'
                   ? 'bg-slate-700 text-white border-slate-500 shadow-md ring-2 ring-slate-400/30'
                   : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'
-              }`}
+              } ${isContestDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
             >
               <span>✋</span> ไม่ต้องการเข้าร่วม (ขอดูเป็นกองเชียร์)
             </button>
