@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { DEFAULT_QUIZZES } from '../utils/mockData';
 import { playSuccess } from '../utils/soundEffects';
+import LuckyWheel from './LuckyWheel';
 import { BusIcon, GridPuzzleIcon, CheckCircleIcon, ChevronRightIcon } from './ui/Icons';
 
 export default function BusActivities({
@@ -268,6 +269,9 @@ export default function BusActivities({
               </button>
             </div>
           </div>
+
+          {/* Activity 03: Lucky Wheel Mini Game */}
+          <LuckyWheel participant={participant} onAddScore={onAddScore} />
         </div>
       </div>
     </div>
