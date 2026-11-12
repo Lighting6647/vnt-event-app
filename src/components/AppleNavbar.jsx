@@ -1,6 +1,6 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import BrandLogo from './BrandLogo';
-import { TEAM_COLORS } from '../utils/mockData';
+import { TEAM_COLORS, findParticipantById } from '../utils/mockData';
 import {
   PassIcon,
   RouteIcon,
@@ -13,11 +13,12 @@ export default function AppleNavbar({
   activeTab,
   setActiveTab,
   participants,
+  currentParticipant,
   selectedId,
   isDark,
   setIsDark,
 }) {
-  const currentPerson = participants.find((p) => p.id === selectedId) || participants[0];
+  const currentPerson = currentParticipant || findParticipantById(participants, selectedId);
   const team = (currentPerson && TEAM_COLORS.find(t => t.id === currentPerson.teamColor)) || TEAM_COLORS[0];
 
   // Public Categories: strictly attendee-facing tabs (No Admin in public shelf)

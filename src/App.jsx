@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useRef, useMemo, Suspense, lazy } from 'react';
 import AppleNavbar from './components/AppleNavbar';
 import DigitalPass from './components/DigitalPass';
 import ActivityModal from './components/ActivityModal';
@@ -6,7 +6,7 @@ import AdminPasscodeModal from './components/AdminPasscodeModal';
 import MobileBottomNav from './components/MobileBottomNav';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 import { ShieldLockIcon, MegaphoneIcon, Volume2Icon } from './components/ui/Icons';
-import { SEED_PARTICIPANTS } from './utils/mockData';
+import { SEED_PARTICIPANTS, findParticipantById } from './utils/mockData';
 import { playSuccess, playFanfare, playPAChime, playWarning, speakAnnouncement } from './utils/soundEffects';
 
 import TripSchedule from './components/TripSchedule';
@@ -73,6 +73,7 @@ export default function App() {
   });
   const [activityModalUser, setActivityModalUser] = useState(null);
   const [foodClaimedAlert, setFoodClaimedAlert] = useState(null);
+  const [welcomeIdentityToast, setWelcomeIdentityToast] = useState(null);
   const [scoreAlert, setScoreAlert] = useState(null);
   const [broadcastAlert, setBroadcastAlert] = useState(null);
   const [departureCountdown, setDepartureCountdown] = useState(null);
@@ -180,11 +181,24 @@ export default function App() {
       const urlTab = params.get('tab');
 
       if (urlUser) {
-        const cleanUser = urlUser.toUpperCase();
+        const cleanUser = String(urlUser).trim();
         setSelectedId(cleanUser);
         try {
           localStorage.setItem('vnt_my_user_id', cleanUser);
         } catch {}
+
+        const matched = findParticipantById(participantsRef.current || SEED_PARTICIPANTS, cleanUser);
+        if (matched) {
+          setWelcomeIdentityToast({
+            name: matched.name,
+            id: matched.id,
+            teamColor: matched.teamColor,
+            busNumber: matched.busNumber,
+          });
+          setTimeout(() => {
+            setWelcomeIdentityToast(null);
+          }, 4500);
+        }
       }
       if (urlTab) {
         setActiveTab(urlTab);
@@ -663,8 +677,18 @@ export default function App() {
     setActiveTab('pass');
   };
 
-  const currentParticipant =
-    participants.find((p) => p && p.id === selectedId) || participants[0] || SEED_PARTICIPANTS[0];
+  const currentParticipant = useMemo(() => {
+    return findParticipantById(participants, selectedId);
+  }, [participants, selectedId]);
+
+  // Auto-bind identity: persist verified user ID to localStorage so reloads keep identity
+  useEffect(() => {
+    if (currentParticipant?.id) {
+      try {
+        localStorage.setItem('vnt_my_user_id', String(currentParticipant.id));
+      } catch {}
+    }
+  }, [currentParticipant]);
 
   return (
     <div className={isDark ? 'dark' : ''}>
@@ -674,6 +698,7 @@ export default function App() {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           participants={participants}
+          currentParticipant={currentParticipant}
           selectedId={selectedId}
           setSelectedId={setSelectedId}
           isDark={isDark}
@@ -918,6 +943,34 @@ export default function App() {
                   className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors cursor-pointer shadow-lg shadow-emerald-900/40"
                 >
                   รับทราบแล้ว (ปิด)
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Attendee Auto-Bind Identity Welcome Toast */}
+        {welcomeIdentityToast && (
+          <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92%] animate-in slide-in-from-top-3 fade-in duration-300 pointer-events-auto">
+            <div className="bg-emerald-600 dark:bg-emerald-500 p-[1.5px] rounded-2xl shadow-2xl">
+              <div className="bg-white dark:bg-zinc-950 rounded-[15px] p-3 sm:p-4 text-zinc-900 dark:text-white flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-lg shrink-0">
+                  ✓
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs sm:text-sm font-extrabold truncate">
+                    จดจำชื่อผู้ใช้งานสำเร็จ: {welcomeIdentityToast.name}
+                  </div>
+                  <div className="text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 truncate font-medium">
+                    รหัสประจำตัว: {welcomeIdentityToast.id} • {welcomeIdentityToast.busNumber}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setWelcomeIdentityToast(null)}
+                  className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 text-sm p-1 cursor-pointer"
+                >
+                  ✕
                 </button>
               </div>
             </div>

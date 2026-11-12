@@ -3152,3 +3152,50 @@ export const SEED_PARTICIPANTS = [
     "wonPrizeName": null
   }
 ];
+
+export function findParticipantById(participants, targetId) {
+  if (!Array.isArray(participants) || participants.length === 0) {
+    return SEED_PARTICIPANTS[0];
+  }
+  if (!targetId) {
+    return participants[0] || SEED_PARTICIPANTS[0];
+  }
+
+  const rawTarget = String(targetId).trim();
+  const targetUpper = rawTarget.toUpperCase();
+  const targetClean = targetUpper.replace(/^TOUR[-_]?/i, '');
+  const targetNum = parseInt(targetClean, 10);
+
+  // 1. Exact ID match (string compare)
+  let found = participants.find((p) => p && String(p.id).trim().toUpperCase() === targetUpper);
+  if (found) return found;
+
+  // 2. ID match stripping 'TOUR-' prefix
+  found = participants.find((p) => {
+    if (!p || !p.id) return false;
+    const pid = String(p.id).trim().toUpperCase().replace(/^TOUR[-_]?/i, '');
+    return pid === targetClean || String(p.id).trim().toUpperCase() === `TOUR-${targetClean}`;
+  });
+  if (found) return found;
+
+  // 3. Integer / numeric match
+  if (!isNaN(targetNum)) {
+    found = participants.find((p) => {
+      if (!p || !p.id) return false;
+      const pidNum = parseInt(String(p.id).replace(/^TOUR[-_]?/i, ''), 10);
+      return pidNum === targetNum;
+    });
+    if (found) return found;
+  }
+
+  // 4. Exact Name match (e.g. Thai name)
+  try {
+    const decodedTarget = decodeURIComponent(rawTarget).trim().toLowerCase();
+    found = participants.find((p) => p && p.name && p.name.trim().toLowerCase() === decodedTarget);
+    if (found) return found;
+  } catch {}
+
+  // 5. Fallback to first participant
+  return participants[0] || SEED_PARTICIPANTS[0];
+}
+
