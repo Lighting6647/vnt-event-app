@@ -59,7 +59,7 @@ export default function AdminPasscodeModal({ isOpen, onClose, onUnlock }) {
               maxLength={12}
               value={passcode}
               onChange={(e) => setPasscode(e.target.value)}
-              placeholder="ระบุรหัสผ่าน (เช่น 2026)"
+              placeholder="ระบุรหัสผ่าน"
               className="w-full text-center tracking-widest text-lg font-mono font-bold bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
             {errorMsg && (
@@ -67,16 +67,6 @@ export default function AdminPasscodeModal({ isOpen, onClose, onUnlock }) {
                 {errorMsg}
               </p>
             )}
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2.5">
-              รหัสผ่านมาตรฐานสำหรับทีมงาน:{' '}
-              <code className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                2026
-              </code>{' '}
-              หรือ{' '}
-              <code className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                1234
-              </code>
-            </p>
           </div>
 
           <div className="flex items-center gap-2.5 pt-1">
