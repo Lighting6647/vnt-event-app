@@ -67,6 +67,88 @@ export default function App() {
   const [foodClaimedAlert, setFoodClaimedAlert] = useState(null);
   const [scoreAlert, setScoreAlert] = useState(null);
   const [broadcastAlert, setBroadcastAlert] = useState(null);
+  const [departureCountdown, setDepartureCountdown] = useState(null);
+  const [countdownRemaining, setCountdownRemaining] = useState(null);
+  const [isOnline, setIsOnline] = useState(() => (typeof navigator !== 'undefined' ? navigator.onLine : true));
+
+  // Network Online / Offline Listener
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Send read receipt when attendee acknowledges broadcast announcement
+  const handleAcknowledgeBroadcast = async () => {
+    if (!broadcastAlert) return;
+    const targetBc = broadcastAlert;
+    setBroadcastAlert(null);
+    try {
+      const myId = (selectedIdRef.current || '').toUpperCase();
+      const myParticipant = (participantsRef.current || []).find(
+        (p) => p && p.id && p.id.toUpperCase() === myId
+      );
+      await fetch('/api/broadcast/acknowledge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          broadcastId: targetBc.id,
+          userId: myParticipant?.id || myId,
+          userName: myParticipant?.name || 'ผู้ร่วมงาน',
+          busNumber: myParticipant?.busNumber || 'ไม่ระบุคันรถ',
+          teamColor: myParticipant?.teamColor || 'zinc',
+        }),
+      });
+    } catch (e) {
+      console.warn('Read receipt ack error:', e);
+    }
+  };
+
+  // Live interval for Departure Countdown
+  useEffect(() => {
+    if (!departureCountdown || !departureCountdown.targetTime) {
+      setCountdownRemaining(null);
+      return;
+    }
+
+    const calc = () => {
+      const now = new Date();
+      let target;
+      if (departureCountdown.targetTime.includes(':') && !departureCountdown.targetTime.includes('T')) {
+        const [hh, mm] = departureCountdown.targetTime.split(':').map(Number);
+        target = new Date();
+        target.setHours(hh, mm, 0, 0);
+        if (target.getTime() < now.getTime() - 3600000) {
+          target.setDate(target.getDate() + 1);
+        }
+      } else {
+        target = new Date(departureCountdown.targetTime);
+      }
+
+      const diffSec = Math.floor((target.getTime() - now.getTime()) / 1000);
+      if (diffSec <= 0) {
+        setCountdownRemaining({ isExpired: true, text: '00:00', totalSeconds: 0 });
+      } else {
+        const h = Math.floor(diffSec / 3600);
+        const m = Math.floor((diffSec % 3600) / 60);
+        const s = diffSec % 60;
+        const text =
+          h > 0
+            ? `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+            : `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        setCountdownRemaining({ isExpired: false, text, totalSeconds: diffSec });
+      }
+    };
+
+    calc();
+    const interval = setInterval(calc, 1000);
+    return () => clearInterval(interval);
+  }, [departureCountdown]);
 
   const selectedIdRef = useRef(selectedId);
   const participantsRef = useRef(participants);
@@ -134,6 +216,16 @@ export default function App() {
       .then((res) => {
         if (res.success && res.broadcast) {
           setBroadcastAlert(res.broadcast);
+        }
+      })
+      .catch(() => {});
+
+    // Check for active departure countdown on mount
+    fetch('/api/countdown/current')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && res.countdown) {
+          setDepartureCountdown(res.countdown);
         }
       })
       .catch(() => {});
@@ -243,6 +335,18 @@ export default function App() {
               // 5. Clear broadcast
               else if (ev.action === 'broadcast-clear') {
                 setBroadcastAlert(null);
+              }
+
+              // 6. Departure Countdown Live Update
+              else if (ev.action === 'departure-countdown' && ev.countdown) {
+                setDepartureCountdown(ev.countdown);
+                playPAChime();
+              }
+
+              // 7. Clear Departure Countdown
+              else if (ev.action === 'departure-countdown-clear') {
+                setDepartureCountdown(null);
+                setCountdownRemaining(null);
               }
             }
           }
@@ -570,6 +674,65 @@ export default function App() {
           setIsAdminModalOpen={setIsAdminModalOpen}
         />
 
+        {/* Offline Mode Active Banner */}
+        {!isOnline && (
+          <div className="bg-amber-500 text-zinc-950 px-4 py-1 text-center text-xs font-bold flex items-center justify-center gap-2 shadow-xs z-40">
+            <span className="w-2 h-2 rounded-full bg-zinc-950 animate-ping" />
+            <span>⚡ โหมดออฟไลน์: บัตรดิจิทัลและแผนผังกำหนดการเดินทางถูกแคชไว้ในเครื่อง สามารถเปิดดูได้ตามปกติ</span>
+          </div>
+        )}
+
+        {/* Live Departure Countdown Timer Banner */}
+        {departureCountdown && countdownRemaining && (
+          <div
+            className={`w-full border-b transition-all animate-in slide-in-from-top-2 duration-300 z-40 ${
+              countdownRemaining.totalSeconds <= 300 && !countdownRemaining.isExpired
+                ? 'bg-red-500/15 border-red-500/40 text-red-700 dark:text-red-300'
+                : countdownRemaining.isExpired
+                ? 'bg-zinc-100 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400'
+                : 'bg-emerald-500/10 border-emerald-500/25 text-emerald-800 dark:text-emerald-300'
+            }`}
+          >
+            <div className="max-w-6xl mx-auto px-3 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-base animate-bounce">🚌</span>
+                <span className="font-bold text-zinc-900 dark:text-zinc-50">
+                  {departureCountdown.title}
+                </span>
+                <span className="font-mono px-2 py-0.5 rounded-md bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 text-[11px]">
+                  เวลารถออก: {departureCountdown.targetTime} น.
+                </span>
+                {departureCountdown.targetBus !== 'all' && (
+                  <span className="font-mono text-[11px] text-amber-600 dark:text-amber-400">
+                    ({departureCountdown.targetBus})
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                {countdownRemaining.isExpired ? (
+                  <span className="px-3 py-1 rounded-full bg-red-600 text-white font-bold text-xs shadow-xs">
+                    ⛔ รถบัสพร้อมออกเดินทางแล้ว
+                  </span>
+                ) : (
+                  <div className="flex items-center gap-1.5 font-mono font-black text-sm">
+                    <span className="text-xs font-sans font-semibold text-zinc-500 dark:text-zinc-400">เหลือเวลาอีก:</span>
+                    <span
+                      className={`px-3 py-0.5 rounded-xl border text-xs sm:text-sm font-bold shadow-xs ${
+                        countdownRemaining.totalSeconds <= 300
+                          ? 'bg-red-600 text-white border-red-500 animate-pulse'
+                          : 'bg-white dark:bg-zinc-800 border-emerald-500/40 text-emerald-600 dark:text-emerald-400'
+                      }`}
+                    >
+                      ⏱️ {countdownRemaining.text}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Main Tab Views Protected by ErrorBoundary */}
         <main className="flex-1 py-4 sm:py-6">
           <ErrorBoundary>
@@ -743,7 +906,7 @@ export default function App() {
 
                 <button
                   type="button"
-                  onClick={() => setBroadcastAlert(null)}
+                  onClick={handleAcknowledgeBroadcast}
                   className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors cursor-pointer shadow-lg shadow-emerald-900/40"
                 >
                   รับทราบแล้ว (ปิด)

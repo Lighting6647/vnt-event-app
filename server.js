@@ -48,6 +48,8 @@ const INITIAL_PARTICIPANTS = [
 
 const sseClients = new Set();
 let currentBroadcast = null;
+let currentCountdown = null;
+let broadcastAcknowledgments = {};
 
 function broadcastSSE(payload) {
   const msg = `data: ${JSON.stringify(payload)}\n\n`;
@@ -99,6 +101,8 @@ app.get('/api/stream', (req, res) => {
     timestamp: new Date().toISOString(),
     data: loadDB(),
     currentBroadcast,
+    currentCountdown,
+    broadcastAcks: currentBroadcast ? (broadcastAcknowledgments[currentBroadcast.id] || []) : [],
   };
   res.write(`data: ${JSON.stringify(initialPayload)}\n\n`);
 
@@ -431,6 +435,106 @@ app.post('/api/broadcast/clear', (req, res) => {
     event: { action: 'broadcast-clear' },
   });
   res.json({ success: true, message: 'ยกเลิกประกาศเสียงตามสายเรียบร้อยแล้ว' });
+});
+
+// POST acknowledge broadcast announcement (Read Receipts)
+app.post('/api/broadcast/acknowledge', (req, res) => {
+  const { broadcastId, userId, userName, busNumber, teamColor } = req.body;
+  if (!broadcastId || !userId) {
+    return res.status(400).json({ success: false, message: 'ข้อมูลไม่ครบถ้วน' });
+  }
+
+  if (!broadcastAcknowledgments[broadcastId]) {
+    broadcastAcknowledgments[broadcastId] = [];
+  }
+
+  const existing = broadcastAcknowledgments[broadcastId].find((a) => a.userId.toUpperCase() === userId.toUpperCase());
+  if (!existing) {
+    const ackEntry = {
+      userId: userId.toUpperCase(),
+      userName: userName || userId,
+      busNumber: busNumber || 'ไม่ระบุคันรถ',
+      teamColor: teamColor || 'zinc',
+      time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+    };
+    broadcastAcknowledgments[broadcastId].push(ackEntry);
+
+    // Broadcast updated read receipts
+    broadcastSSE({
+      type: 'broadcast-ack-update',
+      broadcastId,
+      acks: broadcastAcknowledgments[broadcastId],
+      newAck: ackEntry,
+    });
+  }
+
+  res.json({
+    success: true,
+    totalAcks: broadcastAcknowledgments[broadcastId].length,
+    acks: broadcastAcknowledgments[broadcastId],
+  });
+});
+
+// GET acknowledgments for current broadcast
+app.get('/api/broadcast/acknowledgments', (req, res) => {
+  const id = req.query.id || currentBroadcast?.id;
+  if (!id) {
+    return res.json({ success: true, acks: [] });
+  }
+  res.json({
+    success: true,
+    broadcastId: id,
+    acks: broadcastAcknowledgments[id] || [],
+  });
+});
+
+// GET current departure countdown
+app.get('/api/countdown/current', (req, res) => {
+  res.json({ success: true, countdown: currentCountdown });
+});
+
+// POST start departure countdown
+app.post('/api/countdown', (req, res) => {
+  const { targetTime, title, targetBus = 'all' } = req.body;
+  if (!targetTime) {
+    return res.status(400).json({ success: false, message: 'กรุณาระบุเวลารถออก' });
+  }
+
+  const countdownObj = {
+    id: `CD-${Date.now()}`,
+    targetTime, // e.g. "08:30" or ISO
+    title: title || 'รถบัสออกเดินทางสู่ จ.นครนายก',
+    targetBus,
+    createdAt: new Date().toISOString(),
+  };
+
+  currentCountdown = countdownObj;
+
+  broadcastSSE({
+    type: 'departure-countdown',
+    data: loadDB(),
+    event: {
+      action: 'departure-countdown',
+      countdown: countdownObj,
+    },
+  });
+
+  res.json({
+    success: true,
+    message: 'เริ่มเวลานับถอยหลังขึ้นรถเรียบร้อยแล้ว!',
+    countdown: countdownObj,
+  });
+});
+
+// POST clear departure countdown
+app.post('/api/countdown/clear', (req, res) => {
+  currentCountdown = null;
+  broadcastSSE({
+    type: 'departure-countdown-clear',
+    data: loadDB(),
+    event: { action: 'departure-countdown-clear' },
+  });
+  res.json({ success: true, message: 'ยกเลิกเวลานับถอยหลังขึ้นรถเรียบร้อย' });
 });
 
 // Serve frontend if dist exists

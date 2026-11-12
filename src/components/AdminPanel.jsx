@@ -51,7 +51,17 @@ export default function AdminPanel({
   const [broadcastTargetBus, setBroadcastTargetBus] = useState('all');
   const [broadcastSound, setBroadcastSound] = useState('chime');
   const [activeBroadcast, setActiveBroadcast] = useState(null);
+  const [broadcastAcks, setBroadcastAcks] = useState([]);
   const [isBroadcasting, setIsBroadcasting] = useState(false);
+  const [ackFilterTab, setAckFilterTab] = useState('unacked'); // 'unacked' or 'acked'
+  const [ackBusFilter, setAckBusFilter] = useState('all');
+
+  // Departure Countdown State
+  const [activeCountdown, setActiveCountdown] = useState(null);
+  const [countdownTime, setCountdownTime] = useState('08:30');
+  const [countdownTitle, setCountdownTitle] = useState('รถบัสออกเดินทางสู่ จ.นครนายก');
+  const [countdownBus, setCountdownBus] = useState('all');
+
   const [broadcastHistory, setBroadcastHistory] = useState([
     {
       id: 'init-1',
@@ -63,16 +73,76 @@ export default function AdminPanel({
     },
   ]);
 
+  // Fetch broadcast, acks, and countdown on mount & periodic sync
   useEffect(() => {
-    fetch('/api/broadcast/current')
-      .then((r) => r.json())
-      .then((r) => {
-        if (r.success && r.broadcast) {
-          setActiveBroadcast(r.broadcast);
-        }
-      })
-      .catch(() => {});
+    const fetchStatus = () => {
+      fetch('/api/broadcast/current')
+        .then((r) => r.json())
+        .then((r) => {
+          if (r.success) {
+            setActiveBroadcast(r.broadcast);
+            if (r.broadcast) {
+              fetch(`/api/broadcast/acknowledgments?id=${r.broadcast.id}`)
+                .then((res) => res.json())
+                .then((ackData) => {
+                  if (ackData.success) setBroadcastAcks(ackData.acks || []);
+                })
+                .catch(() => {});
+            }
+          }
+        })
+        .catch(() => {});
+
+      fetch('/api/countdown/current')
+        .then((r) => r.json())
+        .then((r) => {
+          if (r.success) setActiveCountdown(r.countdown);
+        })
+        .catch(() => {});
+    };
+
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 3000);
+    return () => clearInterval(interval);
   }, []);
+
+  const handleStartCountdown = async () => {
+    if (!countdownTime) {
+      showToast('กรุณาระบุเวลารถออก');
+      return;
+    }
+    try {
+      const res = await fetch('/api/countdown', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetTime: countdownTime,
+          title: countdownTitle,
+          targetBus: countdownBus,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setActiveCountdown(data.countdown);
+        showToast('🚀 เริ่มระบบนับถอยหลังขึ้นรถเรียบร้อยแล้ว!');
+      }
+    } catch {
+      showToast('ส่งคำสั่งไม่สำเร็จ');
+    }
+  };
+
+  const handleClearCountdown = async () => {
+    try {
+      const res = await fetch('/api/countdown/clear', { method: 'POST' });
+      if (res.ok) {
+        setActiveCountdown(null);
+        showToast('ยกเลิกเวลานับถอยหลังขึ้นรถแล้ว');
+      }
+    } catch {
+      setActiveCountdown(null);
+      showToast('ยกเลิกแล้ว');
+    }
+  };
 
   const handleSendBroadcast = async () => {
     if (!broadcastMessage.trim()) {
@@ -661,6 +731,232 @@ export default function AdminPanel({
               <span className="font-mono text-[11px] text-zinc-400">Real-time SSE Engine Active</span>
             </div>
           )}
+
+          {/* Live Read Receipts & Acknowledgment Tracking Card */}
+          {activeBroadcast && (
+            <div className="bg-white dark:bg-zinc-900/90 p-5 sm:p-6 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200/80 dark:border-zinc-800 pb-3">
+                <div>
+                  <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                    <CheckCircleIcon className="w-4 h-4 text-emerald-500" />
+                    <span>สถิติการรับทราบประกาศเสียงตามสาย (Read Receipts)</span>
+                  </h4>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    อัปเดตสดแบบเรียลไทม์เมื่อผู้ร่วมงานกด "รับทราบแล้ว (ปิด)" บนมือถือ
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-bold px-3 py-1 rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                    รับทราบแล้ว {broadcastAcks.length} / {participants.length} คน ({Math.round((broadcastAcks.length / (participants.length || 1)) * 100)}%)
+                  </span>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="w-full bg-zinc-100 dark:bg-zinc-800 h-2.5 rounded-full overflow-hidden">
+                <div
+                  className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, (broadcastAcks.length / (participants.length || 1)) * 100)}%` }}
+                />
+              </div>
+
+              {/* Bus Breakdown Pills */}
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1 text-xs font-mono">
+                {BUSES.map((bus) => {
+                  const busMembers = participants.filter((p) => p.busNumber === bus);
+                  const busAcks = broadcastAcks.filter((a) => a.busNumber === bus);
+                  const pct = Math.round((busAcks.length / (busMembers.length || 1)) * 100);
+                  return (
+                    <div key={bus} className="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 space-y-1">
+                      <span className="text-[11px] font-bold block truncate text-zinc-700 dark:text-zinc-300">
+                        {bus.replace(' (ทะเบียน 30-', ' (')}
+                      </span>
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">{busAcks.length}/{busMembers.length}</span>
+                        <span className="text-zinc-400">{pct}%</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Tabs for unacknowledged vs acknowledged */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAckFilterTab('unacked')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      ackFilterTab === 'unacked'
+                        ? 'bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300'
+                        : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
+                    }`}
+                  >
+                    ยังไม่รับทราบ ({participants.length - broadcastAcks.length} ท่าน)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAckFilterTab('acked')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      ackFilterTab === 'acked'
+                        ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
+                        : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
+                    }`}
+                  >
+                    รับทราบแล้ว ({broadcastAcks.length} ท่าน)
+                  </button>
+                </div>
+
+                <select
+                  value={ackBusFilter}
+                  onChange={(e) => setAckBusFilter(e.target.value)}
+                  className="text-xs bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg px-2.5 py-1 text-zinc-700 dark:text-zinc-300"
+                >
+                  <option value="all">ทุกคันรถ</option>
+                  {BUSES.map((b) => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Member List Preview */}
+              <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
+                {(() => {
+                  const ackUserIds = new Set(broadcastAcks.map((a) => a.userId.toUpperCase()));
+                  const list = participants.filter((p) => {
+                    if (!p) return false;
+                    if (ackBusFilter !== 'all' && p.busNumber !== ackBusFilter) return false;
+                    const isAcked = ackUserIds.has(p.id.toUpperCase());
+                    return ackFilterTab === 'acked' ? isAcked : !isAcked;
+                  });
+
+                  if (list.length === 0) {
+                    return (
+                      <div className="py-4 text-center text-xs text-zinc-400">
+                        {ackFilterTab === 'unacked' ? '✓ ผู้ร่วมงานทุกคนกดรับทราบเรียบร้อยแล้ว!' : 'ยังไม่มีผู้กดรับทราบ'}
+                      </div>
+                    );
+                  }
+
+                  return list.slice(0, 30).map((p) => (
+                    <div
+                      key={p.id}
+                      className="px-3 py-1.5 rounded-lg bg-zinc-50 dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between text-xs"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${ackUserIds.has(p.id.toUpperCase()) ? 'bg-emerald-500' : 'bg-amber-400'}`} />
+                        <span className="font-bold text-zinc-800 dark:text-zinc-200">{p.name}</span>
+                        <span className="font-mono text-[10px] text-zinc-400">{p.id}</span>
+                      </div>
+                      <span className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400">{p.busNumber?.split(' ')[0]}</span>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+          )}
+
+          {/* Departure Countdown Controller Card */}
+          <div className="bg-white dark:bg-zinc-900/90 p-5 sm:p-6 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200/80 dark:border-zinc-800 pb-3">
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+                  <span>⏱️ ระบบนับถอยหลังขึ้นรถบัส (Live Departure Countdown)</span>
+                </h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  ระบุเวลาออกเดินทางเพื่อให้หน้าจอมือถือของผู้ร่วมงานทุกคนแสดงแถบนับถอยหลังพร้อมแจ้งเตือนด่วน 5 นาที
+                </p>
+              </div>
+
+              {activeCountdown && (
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1.5 font-mono">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                  <span>กำลังนับถอยหลัง: {activeCountdown.targetTime} น.</span>
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  เวลารถออก (HH:MM):
+                </label>
+                <input
+                  type="time"
+                  value={countdownTime}
+                  onChange={(e) => setCountdownTime(e.target.value)}
+                  className="w-full text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2 text-zinc-900 dark:text-zinc-100 font-mono font-bold"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  ข้อความกำกับ:
+                </label>
+                <input
+                  type="text"
+                  value={countdownTitle}
+                  onChange={(e) => setCountdownTitle(e.target.value)}
+                  placeholder="เช่น รถบัสออกเดินทางสู่ จ.นครนายก"
+                  className="w-full text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2 text-zinc-900 dark:text-zinc-100"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  กลุ่มเป้าหมาย (คันรถ):
+                </label>
+                <select
+                  value={countdownBus}
+                  onChange={(e) => setCountdownBus(e.target.value)}
+                  className="w-full text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2 text-zinc-900 dark:text-zinc-100"
+                >
+                  <option value="all">🌐 ผู้ร่วมงานทุกคน (ทุกคัน)</option>
+                  {BUSES.map((b) => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Quick Time Presets */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[11px] text-zinc-400 font-semibold">เวลาด่วน:</span>
+                {['07:30', '08:00', '08:30', '12:00', '13:00'].map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setCountdownTime(t)}
+                    className="px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 font-mono font-bold cursor-pointer transition-colors"
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                {activeCountdown && (
+                  <button
+                    type="button"
+                    onClick={handleClearCountdown}
+                    className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-red-600 dark:text-red-400 text-xs font-bold transition-colors cursor-pointer border border-zinc-200 dark:border-zinc-700"
+                  >
+                    ยกเลิกเวลานับถอยหลัง
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleStartCountdown}
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-900/30 cursor-pointer active:scale-95"
+                >
+                  🚀 เริ่มนับถอยหลังบนหน้าจอผู้ร่วมงาน
+                </button>
+              </div>
+            </div>
+          </div>
 
           {/* 1-Click Quick Preset Broadcasts */}
           <div className="bg-white dark:bg-zinc-900/90 p-5 sm:p-6 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs space-y-4">
