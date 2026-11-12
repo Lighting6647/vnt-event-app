@@ -16,36 +16,9 @@ export default function AppleNavbar({
   selectedId,
   isDark,
   setIsDark,
-  isAdminUnlocked,
-  setIsAdminModalOpen,
 }) {
   const currentPerson = participants.find((p) => p.id === selectedId) || participants[0];
   const team = (currentPerson && TEAM_COLORS.find(t => t.id === currentPerson.teamColor)) || TEAM_COLORS[0];
-
-  // Secret admin access: 3 quick taps on brand logo
-  const logoTapCountRef = useRef(0);
-  const logoTapTimerRef = useRef(null);
-
-  const handleLogoTap = () => {
-    logoTapCountRef.current += 1;
-    if (logoTapTimerRef.current) clearTimeout(logoTapTimerRef.current);
-
-    if (logoTapCountRef.current >= 3) {
-      logoTapCountRef.current = 0;
-      if (!isAdminUnlocked && setIsAdminModalOpen) {
-        setIsAdminModalOpen(true);
-      } else if (isAdminUnlocked) {
-        setActiveTab('admin');
-      }
-      return;
-    }
-
-    logoTapTimerRef.current = setTimeout(() => {
-      logoTapCountRef.current = 0;
-    }, 1200);
-
-    setActiveTab('pass');
-  };
 
   // Public Categories: strictly attendee-facing tabs (No Admin in public shelf)
   const categories = [
@@ -64,13 +37,13 @@ export default function AppleNavbar({
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/90 dark:bg-zinc-950/90 border-b border-zinc-200/80 dark:border-white/[0.08] transition-colors py-2 sm:py-2.5">
         <div className="max-w-6xl mx-auto px-3 sm:px-6 flex items-center justify-between gap-2 text-xs">
           
-          {/* Brand Identity with Secret Admin Access */}
+          {/* Brand Identity */}
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
-              onClick={handleLogoTap}
+              onClick={() => setActiveTab('pass')}
               className="flex items-center hover:opacity-90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg transition-all min-w-0 cursor-pointer"
-              title="VNT Event App (แตะ 3 ครั้งเพื่อเข้าสู่ระบบแอดมิน)"
+              title="VNT Event App"
             >
               <BrandLogo size="md" showSubtitle={true} />
             </button>
@@ -140,44 +113,46 @@ export default function AppleNavbar({
         </div>
       </section>
 
-      {/* 3. Precision Segmented Navigation Shelf (Desktop & Tablet) */}
-      <section className="max-w-6xl mx-auto px-3 sm:px-6 py-2 overflow-x-auto scrollbar-none">
-        <div className="flex items-center gap-2 min-w-max pb-1">
-          {categories.map((cat) => {
-            const isActive = activeTab === cat.id;
-            const IconComponent = cat.Icon;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => handleCategoryClick(cat.id)}
-                className={`group flex items-center gap-2.5 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl transition-all duration-150 border active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 cursor-pointer ${
-                  isActive
-                    ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 border-zinc-900 dark:border-zinc-100 shadow-md'
-                    : 'bg-white dark:bg-zinc-900/80 border-zinc-200/80 dark:border-white/[0.08] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200'
-                }`}
-              >
-                <span className={`p-2 rounded-xl transition-colors ${
-                  isActive
-                    ? 'bg-white/15 dark:bg-zinc-900/10 text-emerald-400 dark:text-emerald-600'
-                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100'
-                }`}>
-                  <IconComponent className="w-5 h-5" />
-                </span>
-                <div className="text-left">
-                  <div className="text-sm sm:text-base font-extrabold leading-tight">
-                    {cat.name}
-                  </div>
-                  <div className={`text-xs hidden xs:block leading-tight mt-0.5 font-medium ${
-                    isActive ? 'text-zinc-300 dark:text-zinc-600' : 'text-zinc-500 dark:text-zinc-400'
+      {/* 3. Precision Segmented Navigation Shelf (Desktop & Tablet) - Hidden on Admin Page */}
+      {activeTab !== 'admin' && (
+        <section className="max-w-6xl mx-auto px-3 sm:px-6 py-2 overflow-x-auto scrollbar-none">
+          <div className="flex items-center gap-2 min-w-max pb-1">
+            {categories.map((cat) => {
+              const isActive = activeTab === cat.id;
+              const IconComponent = cat.Icon;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => handleCategoryClick(cat.id)}
+                  className={`group flex items-center gap-2.5 px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl transition-all duration-150 border active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 cursor-pointer ${
+                    isActive
+                      ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 border-zinc-900 dark:border-zinc-100 shadow-md'
+                      : 'bg-white dark:bg-zinc-900/80 border-zinc-200/80 dark:border-white/[0.08] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200'
+                  }`}
+                >
+                  <span className={`p-2 rounded-xl transition-colors ${
+                    isActive
+                      ? 'bg-white/15 dark:bg-zinc-900/10 text-emerald-400 dark:text-emerald-600'
+                      : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100'
                   }`}>
-                    {cat.desc}
+                    <IconComponent className="w-5 h-5" />
+                  </span>
+                  <div className="text-left">
+                    <div className="text-sm sm:text-base font-extrabold leading-tight">
+                      {cat.name}
+                    </div>
+                    <div className={`text-xs hidden xs:block leading-tight mt-0.5 font-medium ${
+                      isActive ? 'text-zinc-300 dark:text-zinc-600' : 'text-zinc-500 dark:text-zinc-400'
+                    }`}>
+                      {cat.desc}
+                    </div>
                   </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </section>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

@@ -559,6 +559,15 @@ export default function AdminPanel({
           </div>
 
           <div className="flex items-center gap-2">
+            {onNavigateTab && (
+              <button
+                type="button"
+                onClick={() => onNavigateTab('pass')}
+                className="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 text-xs sm:text-sm font-bold border border-zinc-200 dark:border-zinc-700 transition-colors flex items-center gap-1.5 active:scale-95 cursor-pointer shadow-xs"
+              >
+                <span>↩ กลับหน้าผู้ร่วมงาน</span>
+              </button>
+            )}
             {onLockAdmin && (
               <button
                 type="button"

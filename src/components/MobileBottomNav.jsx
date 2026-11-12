@@ -12,6 +12,10 @@ export default function MobileBottomNav({
   isAdminUnlocked,
   setIsAdminModalOpen,
 }) {
+  if (activeTab === 'admin') {
+    return null; // Admin page has its own dedicated toolbar and action buttons
+  }
+
   const tabs = [
     { id: 'schedule', name: 'กำหนดการ', Icon: RouteIcon },
     { id: 'pass', name: 'บัตรประจำตัว', Icon: PassIcon },
