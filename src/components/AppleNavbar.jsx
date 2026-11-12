@@ -17,6 +17,7 @@ export default function AppleNavbar({
   selectedId,
   isDark,
   setIsDark,
+  onOpenSwitchUser,
 }) {
   const currentPerson = currentParticipant || findParticipantById(participants, selectedId);
   const team = (currentPerson && TEAM_COLORS.find(t => t.id === currentPerson.teamColor)) || TEAM_COLORS[0];
@@ -56,8 +57,13 @@ export default function AppleNavbar({
 
           {/* Right Controls: Attendee Own Identity Badge (No Public Search Bar) & Theme Toggle */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Attendee Personal Identity Badge */}
-            <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-900 px-3.5 py-1.5 rounded-xl border border-zinc-200 dark:border-white/[0.08] select-none shadow-xs">
+            {/* Attendee Personal Identity Badge (Tap to switch user) */}
+            <button
+              type="button"
+              onClick={() => onOpenSwitchUser && onOpenSwitchUser()}
+              className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200/80 dark:hover:bg-zinc-800 px-3.5 py-1.5 rounded-xl border border-zinc-200 dark:border-white/[0.08] hover:border-emerald-500/50 select-none shadow-xs cursor-pointer transition-all active:scale-95 text-left"
+              title="แตะเพื่อสลับชื่อหรือเปลี่ยนผู้ใช้งาน"
+            >
               <span
                 className="w-2.5 h-2.5 rounded-full shrink-0 animate-pulse"
                 style={{ backgroundColor: team?.hex || '#10b981' }}
@@ -68,7 +74,7 @@ export default function AppleNavbar({
               <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 shrink-0">
                 {currentPerson?.id}
               </span>
-            </div>
+            </button>
 
             <button
               onClick={() => setIsDark(!isDark)}

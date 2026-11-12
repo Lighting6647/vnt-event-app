@@ -3,6 +3,7 @@ import AppleNavbar from './components/AppleNavbar';
 import DigitalPass from './components/DigitalPass';
 import ActivityModal from './components/ActivityModal';
 import AdminPasscodeModal from './components/AdminPasscodeModal';
+import OnboardingIdentityModal from './components/OnboardingIdentityModal';
 import MobileBottomNav from './components/MobileBottomNav';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 import { ShieldLockIcon, MegaphoneIcon, Volume2Icon } from './components/ui/Icons';
@@ -72,6 +73,21 @@ export default function App() {
     return SEED_PARTICIPANTS[0]?.id || '500';
   });
   const [activityModalUser, setActivityModalUser] = useState(null);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const urlUser = params.get('user');
+      const urlTab = params.get('tab');
+      if (urlTab === 'admin') return false;
+      if (urlUser) return false;
+      const savedUser = localStorage.getItem('vnt_my_user_id');
+      if (savedUser) return false;
+      return true; // First time visitor with no user parameter
+    } catch {
+      return false;
+    }
+  });
+  const [allowOnboardingClose, setAllowOnboardingClose] = useState(false);
   const [foodClaimedAlert, setFoodClaimedAlert] = useState(null);
   const [welcomeIdentityToast, setWelcomeIdentityToast] = useState(null);
   const [scoreAlert, setScoreAlert] = useState(null);
@@ -677,6 +693,30 @@ export default function App() {
     setActiveTab('pass');
   };
 
+  const handleSelectOnboardingUser = (person) => {
+    if (!person || !person.id) return;
+    const cleanId = String(person.id).trim();
+    setSelectedId(cleanId);
+    try {
+      localStorage.setItem('vnt_my_user_id', cleanId);
+    } catch {}
+    setIsOnboardingOpen(false);
+    setWelcomeIdentityToast({
+      name: person.name,
+      id: person.id,
+      teamColor: person.teamColor,
+      busNumber: person.busNumber,
+    });
+    setTimeout(() => {
+      setWelcomeIdentityToast(null);
+    }, 4500);
+  };
+
+  const handleOpenSwitchUser = () => {
+    setAllowOnboardingClose(true);
+    setIsOnboardingOpen(true);
+  };
+
   const currentParticipant = useMemo(() => {
     return findParticipantById(participants, selectedId);
   }, [participants, selectedId]);
@@ -705,6 +745,7 @@ export default function App() {
           setIsDark={setIsDark}
           isAdminUnlocked={isAdminUnlocked}
           setIsAdminModalOpen={setIsAdminModalOpen}
+          onOpenSwitchUser={handleOpenSwitchUser}
         />
 
         {/* Offline Mode Active Banner */}
@@ -1036,6 +1077,15 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {/* First-Time Attendee Onboarding / Identity Picker Modal */}
+        <OnboardingIdentityModal
+          isOpen={isOnboardingOpen}
+          participants={participants}
+          onSelectParticipant={handleSelectOnboardingUser}
+          onClose={() => setIsOnboardingOpen(false)}
+          allowClose={allowOnboardingClose}
+        />
 
         {/* Admin Password Lock Modal */}
         <AdminPasscodeModal
