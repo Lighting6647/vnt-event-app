@@ -7,15 +7,26 @@ export default function AdminPasscodeModal({ isOpen, onClose, onUnlock }) {
   const [errorMsg, setErrorMsg] = useState('');
   const [isShaking, setIsShaking] = useState(false);
 
-  const CORRECT_PASSWORDS = ['2026', '1234', 'admin2026'];
+  const getAuthorizedPasscodes = () => {
+    const list = ['2026', '1234', 'admin2026'];
+    try {
+      const custom = localStorage.getItem('vnt_admin_custom_passcode');
+      if (custom && custom.trim().length >= 4) {
+        list.push(custom.trim());
+      }
+    } catch {}
+    return list;
+  };
 
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (CORRECT_PASSWORDS.includes(passcode.trim())) {
+    const authorized = getAuthorizedPasscodes();
+    if (authorized.includes(passcode.trim())) {
       playSuccess();
       setErrorMsg('');
+      setPasscode('');
       onUnlock();
       onClose();
     } else {

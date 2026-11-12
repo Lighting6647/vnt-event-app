@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import StaffScanner from './StaffScanner';
 import LuckyDraw from './LuckyDraw';
 import { TEAM_COLORS, BUSES } from '../utils/mockData';
+import { playSuccess, playWarning } from '../utils/soundEffects';
 import {
   ShieldLockIcon,
   TrophyIcon,
@@ -11,6 +12,8 @@ import {
   CheckCircleIcon,
   SparklesIcon,
   TrashIcon,
+  SettingsIcon,
+  KeyIcon,
 } from './ui/Icons';
 
 export default function AdminPanel({
@@ -155,6 +158,103 @@ export default function AdminPanel({
     link.click();
     document.body.removeChild(link);
     showToast(`ส่งออกรายชื่อผู้ยังไม่ได้รับอาหาร (${unclaimed.length} ท่าน) แยกตามคันรถสำเร็จ`);
+  };
+
+  const exportActivitySummaryCSV = () => {
+    // 1. Team Scores Breakdown
+    const teamScores = TEAM_COLORS.map((team) => {
+      const members = participants.filter((p) => p.teamColor === team.id);
+      const totalScore = members.reduce((sum, p) => sum + (p.score || 0), 0);
+      const winnersCount = members.filter((p) => p.wonPrize).length;
+      return {
+        teamName: team.name,
+        colorId: team.id,
+        memberCount: members.length,
+        totalScore,
+        winnersCount,
+      };
+    }).sort((a, b) => b.totalScore - a.totalScore);
+
+    // 2. Lucky Draw Winners
+    const winners = participants.filter((p) => p.wonPrize);
+
+    let csvContent = '\uFEFF';
+    csvContent += '=== สรุปคะแนนสะสม 10 ทีมสี (KoniX Meet the Jungle) ===\n';
+    csvContent += 'อันดับ,ชื่อทีมสี,จำนวนสมาชิก (คน),คะแนนสะสมรวม,ผู้ได้รับรางวัล Lucky Draw (คน)\n';
+    teamScores.forEach((t, idx) => {
+      csvContent += `${idx + 1},"${t.teamName}",${t.memberCount},${t.totalScore},${t.winnersCount}\n`;
+    });
+
+    csvContent += '\n=== รายชื่อผู้โชคดีได้รับรางวัล Lucky Draw บนเวที ===\n';
+    csvContent += 'ลำดับ,รหัสผู้ร่วมงาน,ชื่อ-นามสกุล,คันรถบัส,ทีมสี,ชื่อรางวัลที่ได้รับ,เวลาที่ได้รับรางวัล\n';
+    if (winners.length === 0) {
+      csvContent += '-,ยังไม่มีผู้ได้รับรางวัล,-,-,-,-\n';
+    } else {
+      winners.forEach((w, idx) => {
+        const timeStr = w.wonPrizeAt ? new Date(w.wonPrizeAt).toLocaleString('th-TH') : '-';
+        csvContent += `${idx + 1},${w.id || ''},"${w.name || ''}","${w.busNumber || ''}",${w.teamColor || ''},"${w.wonPrizeName || ''}","${timeStr}"\n`;
+      });
+    }
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `konix_activity_lucky_draw_summary_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('ส่งออกรายงานสรุปคะแนน 10 ทีมสีและผู้โชคดีสำเร็จ');
+  };
+
+  // Settings Tab State: Custom Admin Passcode
+  const [customPasscode, setCustomPasscode] = useState(() => {
+    try {
+      return localStorage.getItem('vnt_admin_custom_passcode') || '';
+    } catch {
+      return '';
+    }
+  });
+  const [newPasscode, setNewPasscode] = useState('');
+  const [confirmPasscode, setConfirmPasscode] = useState('');
+  const [passcodeMsg, setPasscodeMsg] = useState({ type: '', text: '' });
+
+  const handleSaveCustomPasscode = (e) => {
+    e.preventDefault();
+    const trimmed = newPasscode.trim();
+    if (!trimmed || trimmed.length < 4) {
+      playWarning();
+      setPasscodeMsg({ type: 'error', text: 'รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร' });
+      return;
+    }
+    if (trimmed !== confirmPasscode.trim()) {
+      playWarning();
+      setPasscodeMsg({ type: 'error', text: 'รหัสผ่านทั้งสองช่องไม่ตรงกัน' });
+      return;
+    }
+    try {
+      localStorage.setItem('vnt_admin_custom_passcode', trimmed);
+      setCustomPasscode(trimmed);
+      setNewPasscode('');
+      setConfirmPasscode('');
+      playSuccess();
+      setPasscodeMsg({ type: 'success', text: 'บันทึกรหัสผ่านใหม่สำหรับทีมงานเรียบร้อยแล้ว!' });
+      showToast('อัปเดตรหัสผ่าน Admin ใหม่เรียบร้อย');
+    } catch (err) {
+      setPasscodeMsg({ type: 'error', text: 'ไม่สามารถบันทึกได้ โปรดตรวจสอบการอนุญาตจัดเก็บข้อมูล' });
+    }
+  };
+
+  const handleResetPasscodeToDefault = () => {
+    try {
+      localStorage.removeItem('vnt_admin_custom_passcode');
+      setCustomPasscode('');
+      setNewPasscode('');
+      setConfirmPasscode('');
+      playSuccess();
+      setPasscodeMsg({ type: 'success', text: 'รีเซ็ตรหัสผ่านกลับสู่ค่ามาตรฐาน (2026 / 1234) เรียบร้อย' });
+      showToast('รีเซ็ตรหัสผ่านกลับสู่ค่ามาตรฐานแล้ว');
+    } catch {}
   };
 
   const triggerConfirmReset = (mode, title, description) => {
@@ -334,6 +434,18 @@ export default function AdminPanel({
             >
               <UsersIcon className="w-4 h-4 text-sky-500" />
               <span>ฐานข้อมูลรายชื่อ ({participants.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setAdminTab('settings')}
+              className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                adminTab === 'settings'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 shadow-xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
+              }`}
+            >
+              <SettingsIcon className="w-4 h-4 text-violet-500" />
+              <span>ตั้งค่าระบบ & รหัสผ่าน</span>
             </button>
           </div>
 
@@ -659,6 +771,205 @@ export default function AdminPanel({
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 4: System Settings & Passcode Manager */}
+      {adminTab === 'settings' && (
+        <div className="space-y-6">
+          {/* Card 1: Custom Admin Passcode Manager */}
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center">
+                  <KeyIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-50">
+                    จัดการรหัสผ่านแอดมิน (Admin Passcode)
+                  </h3>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    ตั้งรหัสผ่านสำหรับทีมงานเพื่อเข้าสู่หน้าควบคุมนี้ ปลอดภัยและไม่แสดงให้ผู้ร่วมงานทั่วไปเห็น
+                  </p>
+                </div>
+              </div>
+
+              {/* Status Badge */}
+              <div>
+                {customPasscode ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    ใช้รหัสผ่านกำหนดเอง (Active)
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
+                    <span className="w-2 h-2 rounded-full bg-zinc-400" />
+                    ใช้รหัสมาตรฐาน (2026 / 1234)
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Notification alert message if any */}
+            {passcodeMsg.text && (
+              <div
+                className={`p-3.5 rounded-xl text-xs font-semibold flex items-center justify-between gap-2 ${
+                  passcodeMsg.type === 'success'
+                    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20'
+                    : 'bg-red-500/10 text-red-700 dark:text-red-300 border border-red-500/20'
+                }`}
+              >
+                <span>{passcodeMsg.text}</span>
+                <button
+                  type="button"
+                  onClick={() => setPasscodeMsg({ type: '', text: '' })}
+                  className="text-xs opacity-70 hover:opacity-100 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleSaveCustomPasscode} className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  รหัสผ่านใหม่ที่ต้องการตั้ง:
+                </label>
+                <input
+                  type="password"
+                  maxLength={12}
+                  placeholder="ระบุรหัสผ่านใหม่ (4-12 หลัก)"
+                  value={newPasscode}
+                  onChange={(e) => setNewPasscode(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  ยืนยันรหัสผ่านใหม่อีกครั้ง:
+                </label>
+                <input
+                  type="password"
+                  maxLength={12}
+                  placeholder="พิมพ์รหัสผ่านเดิมซ้ำอีกครั้ง"
+                  value={confirmPasscode}
+                  onChange={(e) => setConfirmPasscode(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div className="sm:col-span-2 flex flex-wrap items-center gap-3 pt-2">
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-xs active:scale-[0.98] transition-all cursor-pointer"
+                >
+                  บันทึกรหัสผ่านใหม่
+                </button>
+
+                {customPasscode && (
+                  <button
+                    type="button"
+                    onClick={handleResetPasscodeToDefault}
+                    className="px-4 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-bold transition-all cursor-pointer border border-zinc-200 dark:border-zinc-700"
+                  >
+                    รีเซ็ตกลับเป็นรหัสมาตรฐานเริ่มต้น
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+
+          {/* Card 2: Reporting & Excel Export Hub */}
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex items-center gap-3 pb-3 border-b border-zinc-100 dark:border-zinc-800">
+              <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 flex items-center justify-center">
+                <DownloadIcon className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-50">
+                  ศูนย์ส่งออกรายงาน (Reporting & Data Export Hub)
+                </h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  ดาวน์โหลดข้อมูลเพื่อเปิดใน Microsoft Excel หรือ Google Sheets รองรับภาษาไทย 100%
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+              <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800 flex flex-col justify-between gap-3">
+                <div className="space-y-1">
+                  <h4 className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                    <UsersIcon className="w-4 h-4 text-sky-500" />
+                    <span>ข้อมูลผู้ร่วมงานทั้งหมด ({participants.length} ท่าน)</span>
+                  </h4>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    รหัส, ชื่อ-นามสกุล, บัส, ทีมสี, สถานะอาหาร, คะแนนสะสม, รางวัลที่ได้รับ
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={exportCSV}
+                  className="w-full py-2 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-zinc-900 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <DownloadIcon className="w-3.5 h-3.5" />
+                  <span>ดาวน์โหลดไฟล์ .CSV</span>
+                </button>
+              </div>
+
+              <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800 flex flex-col justify-between gap-3">
+                <div className="space-y-1">
+                  <h4 className="text-xs sm:text-sm font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                    <TrophyIcon className="w-4 h-4 text-amber-500" />
+                    <span>สรุปคะแนน 10 ทีม & Lucky Draw</span>
+                  </h4>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    ตารางจัดอันดับคะแนนสะสม 10 ทีมสี และรายชื่อผู้ชนะรางวัลบนเวทีทั้งหมด
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={exportActivitySummaryCSV}
+                  className="w-full py-2 px-3 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <DownloadIcon className="w-3.5 h-3.5" />
+                  <span>ดาวน์โหลดรายงานคะแนน</span>
+                </button>
+              </div>
+
+              <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800 flex flex-col justify-between gap-3">
+                <div className="space-y-1">
+                  <h4 className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                    <QrScanIcon className="w-4 h-4 text-emerald-500" />
+                    <span>ผู้ยังไม่รับอาหาร (แยกตามบัส)</span>
+                  </h4>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    รายชื่อผู้ยังไม่ได้รับอาหารเช้า จัดกลุ่มตามคันรถบัสสำหรับสตาฟฟ์ตามตัว
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={exportUnclaimedFoodCSV}
+                  className="w-full py-2 px-3 rounded-lg bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <DownloadIcon className="w-3.5 h-3.5" />
+                  <span>ส่งออกรายชื่อตกค้าง</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Security & Architecture Audit */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-zinc-100/70 dark:bg-zinc-900/40 border border-zinc-200/60 dark:border-zinc-800/80 text-xs text-zinc-500 dark:text-zinc-400 flex flex-wrap items-center justify-between gap-3 font-mono">
+            <div className="flex items-center gap-2">
+              <CheckCircleIcon className="w-4 h-4 text-emerald-500" />
+              <span>VNT Core Engine v2.4 (Security Hardened)</span>
+            </div>
+            <div>
+              <span>โหมดปลอดภัย: รหัสผ่านและแผงควบคุมถูกซ่อน 100% จากมุมมองผู้ร่วมงาน</span>
             </div>
           </div>
         </div>
