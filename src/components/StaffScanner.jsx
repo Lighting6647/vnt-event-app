@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { playSuccess, playWarning, speakAnnouncement } from '../utils/soundEffects';
+import { TEAM_COLORS } from '../utils/mockData';
 
 export default function StaffScanner({ participants, onClaimFood, onAddScore, onNavigateTab }) {
   const [mode, setMode] = useState('food'); // 'food' or 'score'
@@ -12,6 +13,25 @@ export default function StaffScanner({ participants, onClaimFood, onAddScore, on
   const [voiceEnabled, setVoiceEnabled] = useState(true);
 
   const html5QrCodeRef = useRef(null);
+
+  // Synchronized state refs to eliminate stale closure bugs in Html5Qrcode callbacks
+  const modeRef = useRef(mode);
+  const pointsToAddRef = useRef(pointsToAdd);
+  const voiceEnabledRef = useRef(voiceEnabled);
+  const onClaimFoodRef = useRef(onClaimFood);
+  const onAddScoreRef = useRef(onAddScore);
+  const handleProcessCodeRef = useRef(null);
+
+  // Scan cooldown & anti-spam guards
+  const isScanningLockedRef = useRef(false);
+  const lastScannedCodeRef = useRef('');
+  const lastScannedTimeRef = useRef(0);
+
+  useEffect(() => { modeRef.current = mode; }, [mode]);
+  useEffect(() => { pointsToAddRef.current = pointsToAdd; }, [pointsToAdd]);
+  useEffect(() => { voiceEnabledRef.current = voiceEnabled; }, [voiceEnabled]);
+  useEffect(() => { onClaimFoodRef.current = onClaimFood; }, [onClaimFood]);
+  useEffect(() => { onAddScoreRef.current = onAddScore; }, [onAddScore]);
 
   useEffect(() => {
     return () => {
@@ -30,7 +50,11 @@ export default function StaffScanner({ participants, onClaimFood, onAddScore, on
       await qrReader.start(
         { facingMode: 'environment' },
         { fps: 10, qrbox: { width: 240, height: 240 } },
-        (decodedText) => handleProcessCode(decodedText),
+        (decodedText) => {
+          if (handleProcessCodeRef.current) {
+            handleProcessCodeRef.current(decodedText);
+          }
+        },
         () => {}
       );
       setIsCameraActive(true);
@@ -53,7 +77,8 @@ export default function StaffScanner({ participants, onClaimFood, onAddScore, on
   };
 
   const handleProcessCode = async (rawCode) => {
-    let cleanId = rawCode.trim();
+    if (!rawCode) return;
+    let cleanId = String(rawCode).trim();
 
     // Support both smart URL (e.g. http://.../?user=TOUR-001) and plain ID (e.g. TOUR-001)
     if (cleanId.includes('?')) {
@@ -68,38 +93,69 @@ export default function StaffScanner({ participants, onClaimFood, onAddScore, on
     }
     cleanId = cleanId.toUpperCase();
 
-    if (mode === 'food') {
-      const res = await onClaimFood(cleanId);
-      setScanResult(res);
-      if (res.success) {
-        playSuccess();
-        if (voiceEnabled) {
-          const personName = res.participant?.name || 'ผู้ร่วมงาน';
-          speakAnnouncement(`สวัสดีคุณ ${personName} เชิญรับอาหารเช้าได้เลยค่ะ`);
+    // Anti-spam debounce guard: prevent duplicate scans within 2.5s
+    const now = Date.now();
+    if (isScanningLockedRef.current) return;
+    if (lastScannedCodeRef.current === cleanId && now - lastScannedTimeRef.current < 2500) {
+      return;
+    }
+
+    isScanningLockedRef.current = true;
+    lastScannedCodeRef.current = cleanId;
+    lastScannedTimeRef.current = now;
+
+    try {
+      const activeMode = modeRef.current;
+      const activePoints = pointsToAddRef.current;
+      const activeVoice = voiceEnabledRef.current;
+
+      if (activeMode === 'food') {
+        const res = await onClaimFoodRef.current(cleanId);
+        setScanResult({ ...res, scanMode: 'food' });
+        if (res.success) {
+          playSuccess();
+          if (activeVoice) {
+            const personName = res.participant?.name || 'ผู้ร่วมงาน';
+            speakAnnouncement(`สวัสดีคุณ ${personName} เชิญรับอาหารเช้าได้เลยค่ะ`);
+          }
+        } else {
+          playWarning();
+          if (activeVoice) {
+            if (res.alreadyClaimed) {
+              const personName = res.participant?.name || 'ท่านนี้';
+              speakAnnouncement(`ขออภัยค่ะ คุณ ${personName} ได้รับอาหารไปแล้วค่ะ`);
+            } else {
+              speakAnnouncement('ไม่พบรหัสผู้ร่วมงานในระบบค่ะ');
+            }
+          }
         }
       } else {
-        playWarning();
-        if (voiceEnabled) {
-          if (res.alreadyClaimed) {
-            speakAnnouncement('ขออภัยค่ะ ท่านนี้ได้รับอาหารไปแล้วค่ะ');
-          } else {
+        // Active mode: 'score'
+        const res = await onAddScoreRef.current(cleanId, activePoints);
+        setScanResult({ ...res, scanMode: 'score', pointsAdded: activePoints });
+        if (res.success) {
+          playSuccess();
+          if (activeVoice) {
+            const personName = res.participant?.name || cleanId;
+            const team = TEAM_COLORS.find(t => t.id === res.participant?.teamColor);
+            const teamLabel = team ? team.name : (res.participant?.teamColor || '');
+            speakAnnouncement(`เพิ่มคะแนน ${activePoints} แต้ม ให้คุณ ${personName} ${teamLabel} เรียบร้อยแล้วค่ะ`);
+          }
+        } else {
+          playWarning();
+          if (activeVoice) {
             speakAnnouncement('ไม่พบรหัสผู้ร่วมงานในระบบค่ะ');
           }
         }
       }
-    } else {
-      const res = await onAddScore(cleanId, pointsToAdd);
-      setScanResult(res);
-      if (res.success) {
-        playSuccess();
-        if (voiceEnabled) {
-          speakAnnouncement(`บวกคะแนน ${pointsToAdd} แต้ม สำเร็จเรียบร้อยค่ะ`);
-        }
-      } else {
-        playWarning();
-      }
+    } finally {
+      setTimeout(() => {
+        isScanningLockedRef.current = false;
+      }, 800);
     }
   };
+
+  handleProcessCodeRef.current = handleProcessCode;
 
   const handleManualSubmit = (e) => {
     e.preventDefault();
@@ -198,13 +254,19 @@ export default function StaffScanner({ participants, onClaimFood, onAddScore, on
               <span className={`text-xs font-semibold uppercase tracking-wider block ${
                 scanResult.success ? 'text-[#34c759]' : 'text-[#ff3b30]'
               }`}>
-                {scanResult.success ? '✓ ดำเนินการสำเร็จ' : '⚠️ แจ้งเตือนจากระบบ'}
+                {scanResult.success
+                  ? (scanResult.scanMode === 'score'
+                      ? `✓ เพิ่มคะแนนสำเร็จ (+${scanResult.pointsAdded || pointsToAdd} แต้ม)`
+                      : '✓ บันทึกการรับอาหารเช้าสำเร็จ')
+                  : (scanResult.scanMode === 'score'
+                      ? '⚠️ แจ้งเตือน: ไม่พบรหัสผู้ร่วมงาน'
+                      : '⚠️ แจ้งเตือนจากระบบ (รับอาหารแล้ว)')}
               </span>
               <p className="text-sm font-semibold">{scanResult.message}</p>
               
               {scanResult.participant && (
                 <div className="text-xs text-[#6e6e73] dark:text-[#a1a1a6] pt-1">
-                  ชื่อ: {scanResult.participant?.name || 'ไม่ระบุชื่อ'} | ทีม: {scanResult.participant?.teamColor || '-'} | รถ: {scanResult.participant?.busNumber || '-'}
+                  ชื่อ: <strong className="text-zinc-900 dark:text-zinc-100">{scanResult.participant?.name || 'ไม่ระบุชื่อ'}</strong> | ทีม: <span className="font-bold">{scanResult.participant?.teamColor || '-'}</span> | รถ: {scanResult.participant?.busNumber || '-'} {scanResult.participant?.score !== undefined ? `| คะแนนสะสมบุคคล: ${scanResult.participant.score} แต้ม` : ''}
                 </div>
               )}
 
