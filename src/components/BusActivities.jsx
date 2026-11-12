@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { DEFAULT_QUIZZES } from '../utils/mockData';
 import { playSuccess } from '../utils/soundEffects';
-import MusicGuessingGame from './MusicGuessingGame';
 import { BusIcon, GridPuzzleIcon, CheckCircleIcon, ChevronRightIcon } from './ui/Icons';
 
 export default function BusActivities({
@@ -269,9 +268,6 @@ export default function BusActivities({
               </button>
             </div>
           </div>
-
-          {/* Interactive 3-Sec Music Guessing & YouTube MV Player */}
-          <MusicGuessingGame onAddScore={onAddScore} />
         </div>
       </div>
     </div>
