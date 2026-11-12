@@ -6,9 +6,9 @@ import AdminPasscodeModal from './components/AdminPasscodeModal';
 import MobileBottomNav from './components/MobileBottomNav';
 import PwaInstallPrompt from './components/PwaInstallPrompt';
 import ErrorBoundary from './components/ui/ErrorBoundary';
-import { ShieldLockIcon } from './components/ui/Icons';
+import { ShieldLockIcon, MegaphoneIcon, Volume2Icon } from './components/ui/Icons';
 import { SEED_PARTICIPANTS } from './utils/mockData';
-import { playSuccess, playFanfare } from './utils/soundEffects';
+import { playSuccess, playFanfare, playPAChime, playWarning, speakAnnouncement } from './utils/soundEffects';
 
 const TripSchedule = lazy(() => import('./components/TripSchedule'));
 const BusActivities = lazy(() => import('./components/BusActivities'));
@@ -67,6 +67,7 @@ export default function App() {
   const [activityModalUser, setActivityModalUser] = useState(null);
   const [foodClaimedAlert, setFoodClaimedAlert] = useState(null);
   const [scoreAlert, setScoreAlert] = useState(null);
+  const [broadcastAlert, setBroadcastAlert] = useState(null);
 
   const selectedIdRef = useRef(selectedId);
   const participantsRef = useRef(participants);
@@ -128,6 +129,16 @@ export default function App() {
       })
       .catch(() => {});
 
+    // Check for active broadcast announcement on mount
+    fetch('/api/broadcast/current')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && res.broadcast) {
+          setBroadcastAlert(res.broadcast);
+        }
+      })
+      .catch(() => {});
+
     // 2. Real-time Server-Sent Events (SSE) Listener
     let eventSource;
     try {
@@ -139,6 +150,10 @@ export default function App() {
             const sanitized = payload.data.filter(p => Boolean(p && p.id && p.name));
             if (sanitized.length > 0) {
               saveState(sanitized);
+            }
+
+            if (payload.currentBroadcast) {
+              setBroadcastAlert(payload.currentBroadcast);
             }
 
             if (payload.event) {
@@ -194,6 +209,41 @@ export default function App() {
                     navigator.vibrate?.([200, 100, 200]);
                   } catch {}
                 }
+              }
+
+              // 4. Live Public Address (PA) Broadcast Announcement
+              else if (ev.action === 'broadcast-announcement' && ev.broadcast) {
+                const bc = ev.broadcast;
+                const myBus = myParticipant?.busNumber || '';
+                const isTargeted =
+                  !bc.targetBus ||
+                  bc.targetBus === 'all' ||
+                  myBus.toLowerCase().includes(bc.targetBus.toLowerCase());
+
+                if (isTargeted) {
+                  if (bc.soundType === 'warning') {
+                    playWarning();
+                  } else {
+                    playPAChime();
+                  }
+
+                  if (bc.soundType === 'speech' || bc.urgency === 'urgent') {
+                    setTimeout(() => {
+                      speakAnnouncement(`${bc.title}. ${bc.message}`);
+                    }, 800);
+                  }
+
+                  try {
+                    navigator.vibrate?.([250, 100, 250, 100, 400]);
+                  } catch {}
+
+                  setBroadcastAlert(bc);
+                }
+              }
+
+              // 5. Clear broadcast
+              else if (ev.action === 'broadcast-clear') {
+                setBroadcastAlert(null);
               }
             }
           }
@@ -616,6 +666,93 @@ export default function App() {
           onClose={() => setActivityModalUser(null)}
           onSave={handleSaveActivity}
         />
+
+        {/* Live Public Address (PA) Broadcast Announcement Modal */}
+        {broadcastAlert && (
+          <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <div className="relative max-w-md w-full bg-zinc-950 border-2 border-emerald-500/80 rounded-3xl p-6 sm:p-7 shadow-2xl text-white space-y-4 overflow-hidden">
+              {/* Background Ambient Glow */}
+              <div
+                className={`absolute -top-12 -right-12 w-48 h-48 rounded-full blur-3xl pointer-events-none ${
+                  broadcastAlert.urgency === 'urgent'
+                    ? 'bg-red-500/25'
+                    : broadcastAlert.urgency === 'countdown'
+                    ? 'bg-amber-500/25'
+                    : 'bg-emerald-500/25'
+                }`}
+              />
+
+              {/* Header Badge & Sound Equalizer Wave */}
+              <div className="flex items-center justify-between gap-2 border-b border-zinc-800/80 pb-3">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${
+                      broadcastAlert.urgency === 'urgent'
+                        ? 'bg-red-500/20 text-red-400 border border-red-500/40'
+                        : broadcastAlert.urgency === 'countdown'
+                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
+                        : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                    }`}
+                  >
+                    <MegaphoneIcon className="w-3.5 h-3.5 animate-bounce" />
+                    <span>เสียงตามสายจากฝ่ายจัดงาน</span>
+                  </span>
+                </div>
+
+                {/* Animated 3-Bar Audio Wave Indicator */}
+                <div className="flex items-end gap-1 h-4 px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-800" title="กำลังถ่ายทอดสด">
+                  <span className="w-1 bg-emerald-400 rounded-full animate-[pulse_0.6s_ease-in-out_infinite] h-2" />
+                  <span className="w-1 bg-emerald-400 rounded-full animate-[pulse_0.8s_ease-in-out_infinite] h-3.5" />
+                  <span className="w-1 bg-emerald-400 rounded-full animate-[pulse_0.5s_ease-in-out_infinite] h-2.5" />
+                </div>
+              </div>
+
+              {/* Main Broadcast Content */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2 text-[11px] font-mono text-zinc-400">
+                  <span className="px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300">
+                    🎯 เป้าหมาย: {broadcastAlert.targetBus === 'all' || !broadcastAlert.targetBus ? 'ผู้ร่วมงานทุกคน' : broadcastAlert.targetBus}
+                  </span>
+                  <span>{broadcastAlert.formattedTime || new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.</span>
+                </div>
+
+                <h3 className="text-lg sm:text-xl font-black text-zinc-50 tracking-tight leading-snug">
+                  {broadcastAlert.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed bg-zinc-900/60 p-3.5 rounded-2xl border border-zinc-800/80 whitespace-pre-line">
+                  {broadcastAlert.message}
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (broadcastAlert.soundType === 'warning') {
+                      playWarning();
+                    } else {
+                      playPAChime();
+                    }
+                    speakAnnouncement(`${broadcastAlert.title}. ${broadcastAlert.message}`);
+                  }}
+                  className="flex-1 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer border border-zinc-700"
+                >
+                  <Volume2Icon className="w-4 h-4 text-emerald-400" />
+                  <span>ฟังเสียงประกาศซ้ำ</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setBroadcastAlert(null)}
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors cursor-pointer shadow-lg shadow-emerald-900/40"
+                >
+                  รับทราบแล้ว (ปิด)
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Real-time Score Notification Toast Banner */}
         {scoreAlert && (

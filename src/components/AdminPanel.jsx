@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import StaffScanner from './StaffScanner';
 import LuckyDraw from './LuckyDraw';
 import { TEAM_COLORS, BUSES } from '../utils/mockData';
-import { playSuccess, playWarning } from '../utils/soundEffects';
+import { playSuccess, playWarning, playPAChime, speakAnnouncement } from '../utils/soundEffects';
 import {
   ShieldLockIcon,
   TrophyIcon,
@@ -14,6 +14,8 @@ import {
   TrashIcon,
   SettingsIcon,
   KeyIcon,
+  MegaphoneIcon,
+  Volume2Icon,
 } from './ui/Icons';
 
 export default function AdminPanel({
@@ -41,6 +43,110 @@ export default function AdminPanel({
   const [confirmModal, setConfirmModal] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
+
+  // Live Broadcast & Public Address (PA) State
+  const [broadcastTitle, setBroadcastTitle] = useState('📢 ประกาศด่วนจากทีมงาน VNT');
+  const [broadcastMessage, setBroadcastMessage] = useState('');
+  const [broadcastUrgency, setBroadcastUrgency] = useState('info');
+  const [broadcastTargetBus, setBroadcastTargetBus] = useState('all');
+  const [broadcastSound, setBroadcastSound] = useState('chime');
+  const [activeBroadcast, setActiveBroadcast] = useState(null);
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
+  const [broadcastHistory, setBroadcastHistory] = useState([
+    {
+      id: 'init-1',
+      title: '🚌 เตรียมตัวขึ้นรถบัสทุกคัน',
+      message: 'ขอความกรุณาผู้ร่วมงานทุกท่าน เตรียมพร้อมขึ้นรถบัสประจำคัน ภายในเวลา 08:00 น.',
+      urgency: 'info',
+      targetBus: 'all',
+      time: '07:45 น.',
+    },
+  ]);
+
+  useEffect(() => {
+    fetch('/api/broadcast/current')
+      .then((r) => r.json())
+      .then((r) => {
+        if (r.success && r.broadcast) {
+          setActiveBroadcast(r.broadcast);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleSendBroadcast = async () => {
+    if (!broadcastMessage.trim()) {
+      showToast('กรุณาระบุข้อความประกาศก่อนส่ง');
+      return;
+    }
+
+    setIsBroadcasting(true);
+    try {
+      const res = await fetch('/api/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: broadcastTitle,
+          message: broadcastMessage,
+          urgency: broadcastUrgency,
+          targetBus: broadcastTargetBus,
+          soundType: broadcastSound,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setActiveBroadcast(data.broadcast);
+        setBroadcastHistory((prev) => [
+          {
+            ...data.broadcast,
+            time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+          },
+          ...prev,
+        ]);
+        showToast('🔊 ส่งสัญญาณเสียงตามสายไปยังทุกอุปกรณ์แล้ว!');
+      } else {
+        showToast(data.message || 'ส่งประกาศไม่สำเร็จ');
+      }
+    } catch {
+      showToast('เชื่อมต่อเซิร์ฟเวอร์ขัดข้อง');
+    } finally {
+      setIsBroadcasting(false);
+    }
+  };
+
+  const handleClearBroadcast = async () => {
+    try {
+      const res = await fetch('/api/broadcast/clear', { method: 'POST' });
+      if (res.ok) {
+        setActiveBroadcast(null);
+        showToast('ยกเลิกประกาศเสียงตามสายเรียบร้อยแล้ว');
+      }
+    } catch {
+      setActiveBroadcast(null);
+      showToast('ยกเลิกประกาศแล้ว');
+    }
+  };
+
+  const handleApplyPreset = (title, msg, urgency = 'info', target = 'all', sound = 'chime') => {
+    setBroadcastTitle(title);
+    setBroadcastMessage(msg);
+    setBroadcastUrgency(urgency);
+    setBroadcastTargetBus(target);
+    setBroadcastSound(sound);
+    showToast('โหลดข้อความด่วนเรียบร้อย พร้อมกดส่ง');
+  };
+
+  const handleTestSound = () => {
+    if (broadcastSound === 'warning') {
+      playWarning();
+    } else {
+      playPAChime();
+    }
+    if (broadcastSound === 'speech' || broadcastUrgency === 'urgent') {
+      speakAnnouncement(`${broadcastTitle}. ${broadcastMessage || 'ทดสอบระบบเสียงตามสาย'}`);
+    }
+    showToast('กำลังทดสอบเสียงสัญญาณบนเครื่องนี้');
+  };
 
   const showToast = (text) => {
     setToastMessage(text);
@@ -425,6 +531,18 @@ export default function AdminPanel({
             </button>
             <button
               type="button"
+              onClick={() => setAdminTab('broadcast')}
+              className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                adminTab === 'broadcast'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 shadow-xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
+              }`}
+            >
+              <MegaphoneIcon className="w-4 h-4 text-amber-500" />
+              <span>เสียงตามสาย & บรอดแคสต์</span>
+            </button>
+            <button
+              type="button"
               onClick={() => setAdminTab('database')}
               className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
                 adminTab === 'database'
@@ -477,6 +595,441 @@ export default function AdminPanel({
             onAddScore={onAddScore}
             onNavigateTab={onNavigateTab}
           />
+        </div>
+      )}
+
+      {/* Tab: Live Public Address (PA) & Broadcast Center */}
+      {adminTab === 'broadcast' && (
+        <div className="space-y-6">
+          {/* Active Live Status Banner */}
+          {activeBroadcast ? (
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-950 via-zinc-900 to-zinc-950 border-2 border-emerald-500/80 p-5 sm:p-7 shadow-2xl">
+              <div className="absolute top-0 right-0 -mr-10 -mt-10 w-44 h-44 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none" />
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                      <span>กำลังถ่ายทอดสดบนหน้าจอผู้ร่วมงาน (LIVE)</span>
+                    </span>
+                    <span className="text-xs font-mono text-zinc-400">
+                      ส่งเมื่อ: {activeBroadcast.formattedTime || 'เพิ่งส่ง'} น.
+                    </span>
+                    <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300">
+                      เป้าหมาย: {activeBroadcast.targetBus === 'all' || !activeBroadcast.targetBus ? 'ทุกคน' : activeBroadcast.targetBus}
+                    </span>
+                  </div>
+
+                  <h3 className="text-xl sm:text-2xl font-black text-white">
+                    {activeBroadcast.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-zinc-300 max-w-2xl bg-black/40 p-3 rounded-xl border border-zinc-800 whitespace-pre-line">
+                    {activeBroadcast.message}
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (activeBroadcast.soundType === 'warning') playWarning();
+                      else playPAChime();
+                      speakAnnouncement(`${activeBroadcast.title}. ${activeBroadcast.message}`);
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-bold transition-all flex items-center justify-center gap-2 border border-zinc-700 cursor-pointer"
+                  >
+                    <Volume2Icon className="w-4 h-4 text-emerald-400" />
+                    <span>ฟังเสียงจำลอง</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleClearBroadcast}
+                    className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-red-900/40 cursor-pointer"
+                  >
+                    <span>🛑 ยกเลิกประกาศสดทันที</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-zinc-900/90 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between gap-3 text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
+              <div className="flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                <span>สถานะระบบเสียงตามสาย: <strong>สแตนด์บาย</strong> (พร้อมส่งสัญญาณและแจ้งเตือนด่วน)</span>
+              </div>
+              <span className="font-mono text-[11px] text-zinc-400">Real-time SSE Engine Active</span>
+            </div>
+          )}
+
+          {/* 1-Click Quick Preset Broadcasts */}
+          <div className="bg-white dark:bg-zinc-900/90 p-5 sm:p-6 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs space-y-4">
+            <div>
+              <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+                <SparklesIcon className="w-5 h-5 text-amber-500" />
+                <span>ข้อความบรอดแคสต์ด่วนสำเร็จรูป (1-Click Presets)</span>
+              </h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                คลิกเลือกเทมเพลตเพื่อโหลดข้อความและพร้อมกดส่งกระจายเสียงได้ทันที
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <button
+                type="button"
+                onClick={() =>
+                  handleApplyPreset(
+                    '🚌 เรียกรวมพลขึ้นรถบัสทุกคัน',
+                    'ขอความกรุณาผู้ร่วมงานทุกท่าน เตรียมสัมภาระและพร้อมขึ้นรถบัสประจำคัน ภายในเวลา 10 นาที ขอบคุณค่ะ',
+                    'info',
+                    'all',
+                    'chime'
+                  )
+                }
+                className="text-left p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800 hover:border-amber-500/50 hover:bg-amber-500/5 transition-all group cursor-pointer space-y-1.5"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-amber-500 transition-colors">
+                    🚌 รวมพลขึ้นรถบัส (10 นาที)
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                    ทุกคน
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-2">
+                  เตรียมสัมภาระและพร้อมขึ้นรถบัสประจำคัน ภายใน 10 นาที
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  handleApplyPreset(
+                    '🥪 อาหารเช้าพร้อมให้บริการแล้ว',
+                    'อาหารเช้าและเครื่องดื่มพร้อมให้บริการแล้ว ณ จุดเช็คอิน กรุณานำ QR Code ในบัตรดิจิทัลมาสแกนรับได้เลยค่ะ',
+                    'info',
+                    'all',
+                    'chime'
+                  )
+                }
+                className="text-left p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all group cursor-pointer space-y-1.5"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-emerald-500 transition-colors">
+                    🥪 อาหารเช้าพร้อมเสิร์ฟ
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                    ทุกคน
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-2">
+                  อาหารเช้าและเครื่องดื่มพร้อมบริการ ณ จุดเช็คอิน นำ QR มาสแกนรับได้เลย
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  handleApplyPreset(
+                    '🎯 รวมพลกิจกรรม Team Building 10 สี',
+                    'ขอเชิญสมาชิกทั้ง 10 สี พร้อมกันที่สนามกิจกรรม/ห้องจัดเลี้ยง เพื่อเริ่มการแข่งขันสันทนาการเก็บคะแนนประจำปี!',
+                    'urgent',
+                    'all',
+                    'speech'
+                  )
+                }
+                className="text-left p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800 hover:border-sky-500/50 hover:bg-sky-500/5 transition-all group cursor-pointer space-y-1.5"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-sky-500 transition-colors">
+                    🎯 รวมพลกิจกรรม Team Building
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                    ด่วนสำคัญ
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-2">
+                  ขอเชิญสมาชิกทั้ง 10 สี พร้อมกันที่สนามกิจกรรม เพื่อเริ่มแข่งขันเก็บแต้ม
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  handleApplyPreset(
+                    '📸 ถ่ายภาพหมู่ร่วมกัน ณ เวทีใหญ่',
+                    'ขอเชิญคณะผู้บริหารและพนักงาน KoniX ทุกท่าน พร้อมกันที่บริเวณหน้าแบคดรอปเพื่อถ่ายภาพที่ระลึกร่วมกันค่ะ',
+                    'info',
+                    'all',
+                    'chime'
+                  )
+                }
+                className="text-left p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800 hover:border-violet-500/50 hover:bg-violet-500/5 transition-all group cursor-pointer space-y-1.5"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-violet-500 transition-colors">
+                    📸 ถ่ายภาพหมู่ที่ระลึก
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                    ทุกคน
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-2">
+                  ขอเชิญผู้บริหารและพนักงานทุกคน พร้อมกันที่หน้าแบคดรอป
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  handleApplyPreset(
+                    '⚠️ แจ้งเตือน: กำหนดเวลาคืนกุญแจห้องพัก',
+                    'โปรดตรวจสอบสัมภาระและนำกุญแจห้องพักมาคืน ณ เคาน์เตอร์ล็อบบี้ ก่อนเวลา 12:00 น. เพื่อเตรียมเดินทางกลับ',
+                    'urgent',
+                    'all',
+                    'warning'
+                  )
+                }
+                className="text-left p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800 hover:border-red-500/50 hover:bg-red-500/5 transition-all group cursor-pointer space-y-1.5"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-red-500 transition-colors">
+                    ⚠️ คืนกุญแจห้องพัก (Check-out)
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-500/10 text-red-600 dark:text-red-400">
+                    สำคัญมาก
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-2">
+                  นำกุญแจห้องพักมาคืน ณ เคาน์เตอร์ล็อบบี้ ก่อนเวลา 12:00 น.
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  handleApplyPreset(
+                    '✨ เตรียมพร้อมสำหรับงานกาล่าไนท์ 18:30 น.',
+                    'ขอเชิญทุกท่านแต่งกายในชุดประกวดแฟนซี และมาร่วมสนุกในงานเลี้ยงกาล่าดินเนอร์ ณ ห้องจัดเลี้ยงใหญ่ค่ะ',
+                    'countdown',
+                    'all',
+                    'chime'
+                  )
+                }
+                className="text-left p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800 hover:border-amber-500/50 hover:bg-amber-500/5 transition-all group cursor-pointer space-y-1.5"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-amber-500 transition-colors">
+                    ✨ งานกาล่าไนท์ & ดินเนอร์
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                    18:30 น.
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-2">
+                  แต่งกายในชุดประกวดแฟนซี และร่วมสนุกในงานกาล่าดินเนอร์
+                </p>
+              </button>
+            </div>
+          </div>
+
+          {/* Custom Broadcast Dispatcher Console */}
+          <div className="bg-white dark:bg-zinc-900/90 p-5 sm:p-7 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs space-y-5">
+            <div>
+              <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+                <MegaphoneIcon className="w-5 h-5 text-emerald-500" />
+                <span>แผงควบคุมระบบเสียงตามสาย (Custom Dispatcher)</span>
+              </h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                พิมพ์ข้อความที่ต้องการประกาศและเลือกระดับความด่วนเพื่อส่งตรงเข้าหน้าจอมือถือผู้ร่วมงานทุกคน
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {/* Title & Target Bus Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2 space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                    หัวข้อประกาศ:
+                  </label>
+                  <input
+                    type="text"
+                    value={broadcastTitle}
+                    onChange={(e) => setBroadcastTitle(e.target.value)}
+                    placeholder="เช่น 📢 ประกาศด่วนจากทีมงาน VNT"
+                    className="w-full text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2.5 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                    กลุ่มเป้าหมาย (คันรถ):
+                  </label>
+                  <select
+                    value={broadcastTargetBus}
+                    onChange={(e) => setBroadcastTargetBus(e.target.value)}
+                    className="w-full text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2.5 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="all">🌐 ผู้ร่วมงานทุกคน (ทุกคัน)</option>
+                    {BUSES.map((b) => (
+                      <option key={b} value={b}>
+                        🚌 {b}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Message Textarea */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                  เนื้อหาประกาศตามสาย:
+                </label>
+                <textarea
+                  rows={4}
+                  value={broadcastMessage}
+                  onChange={(e) => setBroadcastMessage(e.target.value)}
+                  placeholder="พิมพ์ข้อความที่ต้องการให้ผู้ร่วมงานทุกคนอ่านหรือฟังเสียงตามสาย..."
+                  className="w-full text-xs sm:text-sm bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3.5 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none leading-relaxed"
+                />
+              </div>
+
+              {/* Urgency & Sound Settings Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                {/* Urgency Level */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                    ระดับความเร่งด่วน:
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setBroadcastUrgency('info')}
+                      className={`py-2 px-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                        broadcastUrgency === 'info'
+                          ? 'bg-emerald-500/15 border-emerald-500 text-emerald-700 dark:text-emerald-300 shadow-xs'
+                          : 'bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400'
+                      }`}
+                    >
+                      🟢 ทั่วไป
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBroadcastUrgency('urgent')}
+                      className={`py-2 px-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                        broadcastUrgency === 'urgent'
+                          ? 'bg-red-500/15 border-red-500 text-red-700 dark:text-red-300 shadow-xs'
+                          : 'bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400'
+                      }`}
+                    >
+                      🔴 สำคัญด่วน
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBroadcastUrgency('countdown')}
+                      className={`py-2 px-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                        broadcastUrgency === 'countdown'
+                          ? 'bg-amber-500/15 border-amber-500 text-amber-700 dark:text-amber-300 shadow-xs'
+                          : 'bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400'
+                      }`}
+                    >
+                      ⏱️ นับเวลา
+                    </button>
+                  </div>
+                </div>
+
+                {/* Sound Format */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                    รูปแบบเสียงสัญญาณจำลอง:
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setBroadcastSound('chime')}
+                      className={`py-2 px-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                        broadcastSound === 'chime'
+                          ? 'bg-sky-500/15 border-sky-500 text-sky-700 dark:text-sky-300 shadow-xs'
+                          : 'bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400'
+                      }`}
+                    >
+                      🔔 กริ่งตามสาย
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBroadcastSound('warning')}
+                      className={`py-2 px-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                        broadcastSound === 'warning'
+                          ? 'bg-red-500/15 border-red-500 text-red-700 dark:text-red-300 shadow-xs'
+                          : 'bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400'
+                      }`}
+                    >
+                      🚨 สัญญาณเตือน
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBroadcastSound('speech')}
+                      className={`py-2 px-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
+                        broadcastSound === 'speech'
+                          ? 'bg-violet-500/15 border-violet-500 text-violet-700 dark:text-violet-300 shadow-xs'
+                          : 'bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400'
+                      }`}
+                    >
+                      🗣️ AI อ่านไทย
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-3 border-t border-zinc-200/80 dark:border-zinc-800">
+                <button
+                  type="button"
+                  onClick={handleTestSound}
+                  className="px-4 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer border border-zinc-200 dark:border-zinc-700"
+                >
+                  <Volume2Icon className="w-4 h-4 text-emerald-500" />
+                  <span>ทดสอบฟังเสียงบนเครื่องนี้</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isBroadcasting}
+                  onClick={handleSendBroadcast}
+                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/30 cursor-pointer active:scale-95"
+                >
+                  <MegaphoneIcon className="w-4 h-4 animate-bounce" />
+                  <span>{isBroadcasting ? 'กำลังส่งสัญญาณ...' : '📢 ส่งเสียงตามสายทันที (Broadcast Now)'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* History of Sent Broadcasts */}
+          <div className="bg-white dark:bg-zinc-900/90 p-5 rounded-3xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs space-y-3">
+            <h4 className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+              <span>ประวัติการกระจายเสียงในรอบนี้ ({broadcastHistory.length})</span>
+            </h4>
+            <div className="space-y-2">
+              {broadcastHistory.map((item, idx) => (
+                <div
+                  key={item.id || idx}
+                  className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800 flex items-start justify-between gap-3 text-xs"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-zinc-900 dark:text-zinc-100">{item.title}</span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">
+                        {item.targetBus === 'all' || !item.targetBus ? 'ทุกคน' : item.targetBus}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1">{item.message}</p>
+                  </div>
+                  <span className="text-[10px] font-mono text-zinc-400 shrink-0">{item.time}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 

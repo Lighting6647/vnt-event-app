@@ -47,6 +47,7 @@ const INITIAL_PARTICIPANTS = [
 ];
 
 const sseClients = new Set();
+let currentBroadcast = null;
 
 function broadcastSSE(payload) {
   const msg = `data: ${JSON.stringify(payload)}\n\n`;
@@ -97,6 +98,7 @@ app.get('/api/stream', (req, res) => {
     type: 'connected',
     timestamp: new Date().toISOString(),
     data: loadDB(),
+    currentBroadcast,
   };
   res.write(`data: ${JSON.stringify(initialPayload)}\n\n`);
 
@@ -377,6 +379,58 @@ app.delete('/api/participants/:id', (req, res) => {
     message: `ลบรายชื่อ ${removedParticipant.name} (${removedParticipant.id}) เรียบร้อยแล้ว`,
     deletedId: removedParticipant.id,
   });
+});
+
+// GET current active broadcast
+app.get('/api/broadcast/current', (req, res) => {
+  res.json({ success: true, broadcast: currentBroadcast });
+});
+
+// POST send PA broadcast announcement to all connected devices
+app.post('/api/broadcast', (req, res) => {
+  const { title, message, urgency = 'info', targetBus = 'all', soundType = 'chime' } = req.body;
+  if (!message || !message.trim()) {
+    return res.status(400).json({ success: false, message: 'กรุณาระบุข้อความประกาศ' });
+  }
+
+  const broadcastEvent = {
+    id: `BC-${Date.now()}`,
+    title: title?.trim() || '📢 ประกาศด่วนจากทีมงาน VNT Organizer',
+    message: message.trim(),
+    urgency, // 'info' | 'urgent' | 'countdown'
+    targetBus, // 'all' or specific bus
+    soundType, // 'chime' | 'warning' | 'speech'
+    timestamp: new Date().toISOString(),
+    formattedTime: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+  };
+
+  currentBroadcast = broadcastEvent;
+
+  broadcastSSE({
+    type: 'broadcast-announcement',
+    data: loadDB(),
+    event: {
+      action: 'broadcast-announcement',
+      broadcast: broadcastEvent,
+    },
+  });
+
+  res.json({
+    success: true,
+    message: 'บรอดแคสต์เสียงตามสายถูกส่งไปยังทุกอุปกรณ์เรียบร้อยแล้ว!',
+    broadcast: broadcastEvent,
+  });
+});
+
+// POST clear broadcast announcement
+app.post('/api/broadcast/clear', (req, res) => {
+  currentBroadcast = null;
+  broadcastSSE({
+    type: 'broadcast-clear',
+    data: loadDB(),
+    event: { action: 'broadcast-clear' },
+  });
+  res.json({ success: true, message: 'ยกเลิกประกาศเสียงตามสายเรียบร้อยแล้ว' });
 });
 
 // Serve frontend if dist exists

@@ -132,6 +132,43 @@ export function playFanfare() {
 }
 
 /**
+ * Play Public Address (PA) / Airport-style Chime for broadcast announcements
+ */
+export function playPAChime() {
+  try {
+    const ctx = getAudioContext();
+    const now = ctx.currentTime;
+
+    // Classic 4-Tone Airport PA Chime: D4 (293.66) -> F#4 (369.99) -> A4 (440.00) -> D5 (587.33)
+    const tones = [
+      { freq: 293.66, start: 0.00, dur: 0.35, gain: 0.22 },
+      { freq: 369.99, start: 0.18, dur: 0.35, gain: 0.25 },
+      { freq: 440.00, start: 0.36, dur: 0.40, gain: 0.28 },
+      { freq: 587.33, start: 0.54, dur: 0.85, gain: 0.32 },
+    ];
+
+    tones.forEach((t) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(t.freq, now + t.start);
+
+      gain.gain.setValueAtTime(t.gain, now + t.start);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + t.start + t.dur);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now + t.start);
+      osc.stop(now + t.start + t.dur);
+    });
+  } catch (e) {
+    console.warn('PA Chime error', e);
+  }
+}
+
+/**
  * Text-to-Speech: Voice announcement for staff scan confirmation
  */
 export function speakAnnouncement(text) {
