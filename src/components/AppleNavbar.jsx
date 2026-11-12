@@ -55,8 +55,6 @@ export default function AppleNavbar({
   const categories = [
     { id: 'schedule', name: 'กำหนดการ', Icon: RouteIcon, desc: '25–26 ธ.ค. 69' },
     { id: 'pass', name: 'บัตรดิจิทัล', Icon: PassIcon, desc: 'QR ประจำตัว' },
-    { id: 'bus', name: 'กิจกรรมบนรถ', Icon: BusIcon, desc: 'ควิซ & วงล้อนำโชค' },
-    { id: 'diff', name: 'เกมจับผิดภาพ', Icon: GridPuzzleIcon, desc: '10 ด่าน' },
     { id: 'leaderboard', name: 'คะแนน 10 สี', Icon: ChartIcon, desc: 'อัปเดตสด' },
     {
       id: 'admin',

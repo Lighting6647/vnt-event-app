@@ -284,7 +284,7 @@ export default function DigitalPass({ participant, onOpenActivity, onOpenSchedul
               onClick={() => onOpenActivity(participant)}
               className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow-xs transition-all flex items-center justify-between active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 cursor-pointer"
             >
-              <span>ทำกิจกรรมบนรถ & ลงทะเบียนประกวดชุด</span>
+              <span>ลงทะเบียนประกวดชุดแฟนซี (ธีมท่องป่า)</span>
               <ChevronRightIcon className="w-4 h-4 opacity-80" />
             </button>
           </div>

@@ -18,8 +18,6 @@ export default function MobileBottomNav({
   const tabs = [
     { id: 'schedule', name: 'กำหนดการ', Icon: RouteIcon },
     { id: 'pass', name: 'บัตร', Icon: PassIcon },
-    { id: 'bus', name: 'กิจกรรม', Icon: BusIcon },
-    { id: 'diff', name: 'จับผิดภาพ', Icon: GridPuzzleIcon },
     { id: 'leaderboard', name: 'คะแนน', Icon: ChartIcon },
     { id: 'admin', name: 'Admin', Icon: ShieldLockIcon, unlocked: isAdminUnlocked },
   ];
