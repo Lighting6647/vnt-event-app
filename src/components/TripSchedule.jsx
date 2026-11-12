@@ -23,71 +23,71 @@ export default function TripSchedule() {
         
         <div className="relative z-10 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold tracking-wider uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              <RouteIcon className="w-3.5 h-3.5" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs sm:text-sm font-bold tracking-wide uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              <RouteIcon className="w-4 h-4" />
               <span>MEET THE JUNGLE</span>
             </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold font-mono tabular-nums bg-zinc-800 text-zinc-300 border border-zinc-700">
-              <ClockIcon className="w-3.5 h-3.5 text-amber-400" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs sm:text-sm font-bold font-mono tabular-nums bg-zinc-800 text-zinc-200 border border-zinc-700">
+              <ClockIcon className="w-4 h-4 text-amber-400" />
               <span>25–26 ธ.ค. 2569 (2 วัน 1 คืน)</span>
             </span>
           </div>
 
-          <h2 className="text-xl sm:text-3xl font-extrabold tracking-tight leading-tight text-zinc-50">
+          <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight text-zinc-50">
             กำหนดการเดินทางและตารางกิจกรรม
           </h2>
           
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-3 border-t border-zinc-800 text-xs sm:text-sm text-zinc-300">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-3 border-t border-zinc-800 text-xs sm:text-sm text-zinc-300 font-medium">
             <div>
-              <span className="font-bold text-white">บริษัท คอนิกซ์ (ไทยแลนด์) จำกัด</span>
-              <span className="text-zinc-400 text-[11px] sm:text-xs block">
+              <span className="font-bold text-white text-sm sm:text-base">บริษัท คอนิกซ์ (ไทยแลนด์) จำกัด</span>
+              <span className="text-zinc-300 text-xs sm:text-sm block mt-0.5">
                 KoniX (Thailand) Co., Ltd. • เส้นทาง: กรุงเทพฯ – โรงแรมสีดา รีสอร์ท นครนายก
               </span>
             </div>
-            <div className="text-left sm:text-right text-[11px] sm:text-xs text-zinc-400">
-              <span className="text-emerald-400 font-semibold">บริหารการจัดงาน:</span> บจก. วีเอ็นที ออร์แกไนเซอร์ อีเว้นท์
+            <div className="text-left sm:text-right text-xs sm:text-sm text-zinc-300">
+              <span className="text-emerald-400 font-bold">บริหารการจัดงาน:</span> บจก. วีเอ็นที ออร์แกไนเซอร์ อีเว้นท์
             </div>
           </div>
         </div>
       </div>
 
       {/* 2. Visual Schedule Header Controls */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-zinc-900/90 p-3 sm:p-3.5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-zinc-900/90 p-3.5 sm:p-4 rounded-2xl border border-zinc-200/90 dark:border-zinc-800 shadow-xs">
+        <div className="flex items-center gap-2.5">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-50">
+          <span className="text-sm sm:text-base font-black text-zinc-900 dark:text-zinc-50">
             {activeTitle}
           </span>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
           <button
             type="button"
             onClick={() => setActiveModalImg(activeImg)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-bold transition-colors cursor-pointer border border-zinc-200 dark:border-zinc-700"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs sm:text-sm font-bold transition-colors cursor-pointer border border-zinc-200 dark:border-zinc-700"
           >
-            <ZoomInIcon className="w-3.5 h-3.5 text-emerald-500" />
+            <ZoomInIcon className="w-4 h-4 text-emerald-500" />
             <span>แตะดูภาพขยาย</span>
           </button>
           <a
             href={activeImg}
             download="konix_tour_schedule_map_2026.jpg"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-xs"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold transition-all shadow-xs"
           >
-            <DownloadIcon className="w-3.5 h-3.5" />
+            <DownloadIcon className="w-4 h-4" />
             <span>บันทึกภาพ</span>
           </a>
         </div>
       </div>
 
       {/* 3. Main High-Resolution Image Presentation (Front Page Visual Schedule) */}
-      <div className="bg-white dark:bg-zinc-900/90 rounded-3xl p-3 sm:p-5 border border-zinc-200/80 dark:border-zinc-800 shadow-md space-y-3">
+      <div className="bg-white dark:bg-zinc-900/90 rounded-3xl p-3.5 sm:p-5 border border-zinc-200/90 dark:border-zinc-800 shadow-md space-y-3">
         <div className="flex items-center justify-between px-1">
-          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
-            <CheckCircleIcon className="w-3.5 h-3.5 text-emerald-500" />
+          <span className="text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+            <CheckCircleIcon className="w-4 h-4 text-emerald-500" />
             <span>ภาพความละเอียดสูง โครงการทัวร์ประจำปี 2569</span>
           </span>
-          <span className="text-[11px] text-zinc-400">
+          <span className="text-xs sm:text-sm font-semibold text-zinc-500 dark:text-zinc-400">
             แตะที่ภาพเพื่อซูมขยายเต็มจอ
           </span>
         </div>
@@ -112,12 +112,12 @@ export default function TripSchedule() {
         </div>
 
         {/* Quick Highlights Footer */}
-        <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/60 dark:border-zinc-800/80 flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+        <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/60 dark:border-zinc-800/80 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 font-medium">
           <div className="flex items-center gap-2">
             <CheckCircleIcon className="w-4 h-4 text-emerald-500" />
             <span>เอกสารทางการรับรองโดย บจก. วีเอ็นที ออร์แกไนเซอร์ อีเว้นท์</span>
           </div>
-          <span className="font-mono text-[11px]">ทัวร์นครนายก 25-26 ธันวาคม 2569</span>
+          <span className="font-mono text-xs sm:text-sm font-semibold text-zinc-700 dark:text-zinc-300">ทัวร์นครนายก 25-26 ธันวาคม 2569</span>
         </div>
       </div>
 

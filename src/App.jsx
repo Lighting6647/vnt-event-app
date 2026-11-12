@@ -9,11 +9,12 @@ import { ShieldLockIcon, MegaphoneIcon, Volume2Icon } from './components/ui/Icon
 import { SEED_PARTICIPANTS } from './utils/mockData';
 import { playSuccess, playFanfare, playPAChime, playWarning, speakAnnouncement } from './utils/soundEffects';
 
-const TripSchedule = lazy(() => import('./components/TripSchedule'));
+import TripSchedule from './components/TripSchedule';
+import StaffScanner from './components/StaffScanner';
+import Leaderboard from './components/Leaderboard';
+
 const BusActivities = lazy(() => import('./components/BusActivities'));
 const SpotTheDifference = lazy(() => import('./components/SpotTheDifference'));
-const StaffScanner = lazy(() => import('./components/StaffScanner'));
-const Leaderboard = lazy(() => import('./components/Leaderboard'));
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
 
 function TabLoadingSkeleton() {
@@ -29,7 +30,14 @@ function TabLoadingSkeleton() {
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('pass');
+  const [activeTab, setActiveTab] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const urlTab = params.get('tab');
+      if (urlTab) return urlTab;
+    } catch {}
+    return 'pass';
+  });
   const [isDark, setIsDark] = useState(true);
   const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);

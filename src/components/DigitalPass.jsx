@@ -47,8 +47,6 @@ export default function DigitalPass({ participant, onOpenActivity, onOpenSchedul
   useEffect(() => {
     let active = true;
     if (participant?.id) {
-      // Determine the best base URL for smartphone QR code scan:
-      // If client is currently browsing via localhost, use server's actual LAN IP so mobile can reach it
       let baseUrl = window.location.origin;
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         if (serverLanUrl) {
@@ -88,7 +86,7 @@ export default function DigitalPass({ participant, onOpenActivity, onOpenSchedul
   if (!participant) {
     return (
       <div className="max-w-md mx-auto p-6">
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 text-center text-zinc-500">
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 text-center text-zinc-600 dark:text-zinc-300 text-base font-semibold">
           กรุณาเลือกรายชื่อผู้ร่วมงานจากเมนูด้านบน
         </div>
       </div>
@@ -100,68 +98,68 @@ export default function DigitalPass({ participant, onOpenActivity, onOpenSchedul
     : null;
 
   return (
-    <div className="max-w-md mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
+    <div className="max-w-md mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
       
       {/* Precision Digital Tour Pass */}
-      <div className="bg-white dark:bg-zinc-900/90 border border-zinc-200/80 dark:border-zinc-800 rounded-[28px] shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.4)] overflow-hidden transition-all duration-300">
+      <div className="bg-white dark:bg-zinc-900/95 border border-zinc-200/90 dark:border-zinc-800 rounded-[30px] shadow-[0_8px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.5)] overflow-hidden transition-all duration-300">
         
         {/* Team Accent Top Strip */}
-        <div className="h-3 w-full" style={{ backgroundColor: team.hex }} />
+        <div className="h-3.5 w-full" style={{ backgroundColor: team.hex }} />
 
         {/* Card Content */}
-        <div className="p-4 sm:p-7 space-y-4 sm:space-y-6">
+        <div className="p-4 sm:p-7 space-y-5">
           
           {/* Trip Theme & Company Badge */}
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-100 dark:border-zinc-800/80 pb-3">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-bold tracking-wider uppercase bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs sm:text-sm font-bold tracking-wide uppercase bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/25">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
               Meet the Jungle • 2 วัน 1 คืน
             </span>
-            <span className="text-[11px] sm:text-xs font-semibold text-zinc-500 dark:text-zinc-400 truncate">
+            <span className="text-xs sm:text-sm font-bold text-zinc-600 dark:text-zinc-300 truncate">
               KoniX (Thailand) Co., Ltd.
             </span>
           </div>
 
-          {/* Smartphone Telemetry: Live Sync, Offline Resilience & Screen Wake Lock */}
-          <div className="flex items-center justify-between text-[11px] font-medium py-0.5 px-0.5 text-zinc-400">
+          {/* Smartphone Telemetry: Live Sync & Wake Lock */}
+          <div className="flex items-center justify-between text-xs sm:text-sm font-semibold py-0.5 px-0.5 text-zinc-600 dark:text-zinc-300">
             {isOnline ? (
-              <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Live Sync (เชื่อมต่อสด)
+              <span className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300 font-bold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Live Sync (เชื่อมต่อข้อมูลสด)
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-semibold bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              <span className="inline-flex items-center gap-1.5 text-amber-700 dark:text-amber-300 font-bold bg-amber-500/15 px-2.5 py-1 rounded-full border border-amber-500/30">
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
                 โหมดออฟไลน์ (บัตรพร้อมสแกน)
               </span>
             )}
 
             {isSupported && isLocked && (
-              <span className="inline-flex items-center gap-1 text-zinc-500 dark:text-zinc-400 font-mono text-[10px]">
+              <span className="inline-flex items-center gap-1 text-zinc-600 dark:text-zinc-300 font-mono text-xs">
                 <span>💡 จอสว่างตลอด</span>
               </span>
             )}
           </div>
 
-          {/* Header Row */}
+          {/* Header Row: Attendee Name & Team Badge */}
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 font-mono">
+              <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 font-mono block">
                 PASS • 25–26 DEC 2569
               </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50 mt-0.5 truncate">
+              <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-900 dark:text-zinc-50 mt-1 truncate">
                 {participant?.name || 'ไม่ระบุชื่อ'}
               </h2>
-              <span className="font-mono tabular-nums text-xs sm:text-sm font-semibold text-zinc-500 dark:text-zinc-400">
-                ID: {participant?.id || '-'}
+              <span className="font-mono tabular-nums text-sm sm:text-base font-bold text-zinc-600 dark:text-zinc-300 block mt-0.5">
+                รหัสพนักงาน: {participant?.id || '-'}
               </span>
             </div>
 
             <div
-              className="px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold shadow-xs flex items-center gap-1.5 shrink-0"
+              className="px-4 py-2 rounded-full text-sm sm:text-base font-black shadow-md flex items-center gap-2 shrink-0"
               style={{ backgroundColor: team?.hex || '#10b981', color: team?.textHex || '#ffffff' }}
             >
-              <span className="w-2 h-2 rounded-full bg-white/90" />
+              <span className="w-2.5 h-2.5 rounded-full bg-white" />
               {team?.name || 'ทีมสี'}
             </div>
           </div>
@@ -170,42 +168,42 @@ export default function DigitalPass({ participant, onOpenActivity, onOpenSchedul
           <div className="grid grid-cols-2 gap-3">
             
             {/* Bus Info */}
-            <div className="bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/60 dark:border-zinc-800/80 p-3.5 sm:p-4 rounded-2xl">
-              <div className="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
-                <BusIcon className="w-3.5 h-3.5 shrink-0" />
-                <span className="text-xs font-semibold">รถบัสประจำตัว</span>
+            <div className="bg-zinc-50 dark:bg-zinc-950/70 border border-zinc-200/80 dark:border-zinc-800 p-4 rounded-2xl flex flex-col justify-between">
+              <div className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300">
+                <BusIcon className="w-4 h-4 shrink-0 text-sky-500" />
+                <span className="text-xs sm:text-sm font-bold">รถบัสประจำตัว</span>
               </div>
-              <div className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 mt-1.5 line-clamp-2">
+              <div className="text-sm sm:text-base font-extrabold text-zinc-900 dark:text-zinc-100 mt-2 line-clamp-2 leading-snug">
                 {participant.busNumber}
               </div>
-              <span className="text-[11px] text-zinc-500 dark:text-zinc-500 mt-1 block">
+              <span className="text-xs text-zinc-600 dark:text-zinc-400 mt-1.5 block font-semibold">
                 ขึ้นรถคันตนเองเท่านั้น
               </span>
             </div>
 
             {/* Meal Status */}
-            <div className="bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/60 dark:border-zinc-800/80 p-3.5 sm:p-4 rounded-2xl flex flex-col justify-between">
-              <div className="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
-                <UtensilsIcon className="w-3.5 h-3.5 shrink-0" />
-                <span className="text-xs font-semibold">สิทธิ์อาหารเช้า</span>
+            <div className="bg-zinc-50 dark:bg-zinc-950/70 border border-zinc-200/80 dark:border-zinc-800 p-4 rounded-2xl flex flex-col justify-between">
+              <div className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300">
+                <UtensilsIcon className="w-4 h-4 shrink-0 text-emerald-500" />
+                <span className="text-xs sm:text-sm font-bold">สิทธิ์อาหารเช้า</span>
               </div>
               {participant.foodClaimed ? (
-                <div className="mt-1.5">
-                  <div className="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                <div className="mt-2">
+                  <div className="text-sm sm:text-base font-extrabold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                     <CheckCircleIcon className="w-4 h-4 shrink-0" />
                     <span>รับอาหารแล้ว</span>
                   </div>
-                  <span className="text-xs text-zinc-500 block font-mono tabular-nums font-semibold mt-0.5">
+                  <span className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 block font-mono tabular-nums font-bold mt-1">
                     เวลา {foodTime} น.
                   </span>
                 </div>
               ) : (
-                <div className="mt-1.5">
-                  <div className="text-sm sm:text-base font-bold text-amber-600 dark:text-amber-400">
+                <div className="mt-2">
+                  <div className="text-sm sm:text-base font-extrabold text-amber-600 dark:text-amber-400">
                     รอสแกนรับสิทธิ์
                   </div>
-                  <span className="text-[11px] text-zinc-500 font-mono tabular-nums block mt-0.5">
-                    07:00–08:00 น.
+                  <span className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 font-mono tabular-nums block font-bold mt-1">
+                    เวลา 07:00–08:00 น.
                   </span>
                 </div>
               )}
@@ -214,78 +212,78 @@ export default function DigitalPass({ participant, onOpenActivity, onOpenSchedul
           </div>
 
           {/* QR Code Verification Box */}
-          <div className="bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/60 dark:border-zinc-800/80 p-5 sm:p-6 rounded-2xl flex flex-col items-center justify-center space-y-3">
-            <div className="bg-white p-3.5 rounded-2xl shadow-xs border border-zinc-200/80">
+          <div className="bg-zinc-50 dark:bg-zinc-950/70 border border-zinc-200/80 dark:border-zinc-800 p-5 sm:p-6 rounded-2xl flex flex-col items-center justify-center space-y-3">
+            <div className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-200">
               {qrUrl ? (
                 <img
                   src={qrUrl}
                   alt={`QR Code สำหรับ ${participant?.name || 'ผู้ร่วมงาน'}`}
-                  className="w-44 h-44 sm:w-48 sm:h-48 object-contain"
+                  className="w-48 h-48 sm:w-52 sm:h-52 object-contain"
                 />
               ) : (
                 <div
-                  className="w-44 h-44 sm:w-48 sm:h-48 rounded-xl bg-zinc-200 dark:bg-zinc-800 animate-pulse"
+                  className="w-48 h-48 sm:w-52 sm:h-52 rounded-xl bg-zinc-200 dark:bg-zinc-800 animate-pulse"
                   aria-label="กำลังสร้างรหัส QR"
                 />
               )}
             </div>
             
-            <div className="text-center">
-              <span className="text-base font-mono tabular-nums font-bold text-zinc-900 dark:text-zinc-100">
+            <div className="text-center space-y-1">
+              <span className="text-lg sm:text-xl font-mono tabular-nums font-black text-zinc-900 dark:text-zinc-100 tracking-wider">
                 {participant.id}
               </span>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 font-medium">
-                แสดงรหัสนี้ต่อทีมงานเพื่อเช็คชื่อ รับอาหารเช้า และสะสมคะแนนสี
+              <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 font-bold max-w-xs mx-auto leading-relaxed">
+                ยื่น QR ให้ทีมงานสแกนเพื่อเช็คชื่อ รับอาหารเช้า และเติมคะแนนสะสมสี
               </p>
             </div>
           </div>
 
           {/* Score & Contest Quick Info */}
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/60 dark:border-zinc-800/80">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-950/70 border border-zinc-200/80 dark:border-zinc-800">
             <div>
-              <span className="text-xs text-zinc-500 dark:text-zinc-400 block font-semibold">คะแนนสะสมบุคคล</span>
-              <span className="text-2xl font-extrabold font-mono tabular-nums text-zinc-900 dark:text-zinc-50">
+              <span className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 block font-bold">คะแนนสะสมบุคคล</span>
+              <span className="text-2xl sm:text-3xl font-black font-mono tabular-nums text-zinc-900 dark:text-zinc-50">
                 {participant.score || 0}{' '}
-                <span className="text-xs font-sans text-zinc-500 font-semibold">แต้ม</span>
+                <span className="text-sm font-sans text-zinc-500 dark:text-zinc-400 font-bold">แต้ม</span>
               </span>
             </div>
 
             <div className="text-right">
-              <span className="text-xs text-zinc-500 dark:text-zinc-400 block font-semibold">ประกวดชุดงานเลี้ยงค่ำ</span>
-              <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+              <span className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 block font-bold">ประกวดชุดงานเลี้ยงค่ำ</span>
+              <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
                 {participant.joinEveningContest === 'yes' ? (
                   <>
-                    <SparklesIcon className="w-3.5 h-3.5" />
-                    <span>ลงทะเบียนประกวดแล้ว</span>
+                    <SparklesIcon className="w-4 h-4" />
+                    <span>ลงทะเบียนแล้ว</span>
                   </>
                 ) : (
-                  <span className="text-zinc-500 font-medium">ไม่ได้ลงประกวด</span>
+                  <span className="text-zinc-500 dark:text-zinc-400 font-semibold">ไม่ได้ลงประกวด</span>
                 )}
               </span>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="space-y-2.5 pt-1">
+          <div className="space-y-3 pt-1">
             {onOpenSchedule && (
               <button
                 onClick={onOpenSchedule}
-                className="w-full py-3 px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-zinc-950 text-sm font-bold shadow-xs transition-all flex items-center justify-between active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 cursor-pointer"
+                className="w-full py-3.5 px-4 rounded-2xl bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-zinc-950 text-sm sm:text-base font-extrabold shadow-sm transition-all flex items-center justify-between active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 cursor-pointer"
               >
                 <span className="inline-flex items-center gap-2">
                   <RouteIcon className="w-4 h-4 text-emerald-400 dark:text-emerald-600" />
                   <span>ดูกำหนดการเดินทาง 2 วัน 1 คืน</span>
                 </span>
-                <ChevronRightIcon className="w-4 h-4 opacity-70" />
+                <ChevronRightIcon className="w-4 h-4 opacity-75" />
               </button>
             )}
 
             <button
               onClick={() => onOpenActivity(participant)}
-              className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow-xs transition-all flex items-center justify-between active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 cursor-pointer"
+              className="w-full py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm sm:text-base font-extrabold shadow-md shadow-emerald-900/30 transition-all flex items-center justify-between active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 cursor-pointer"
             >
               <span>ลงทะเบียนประกวดชุดแฟนซี (ธีมท่องป่า)</span>
-              <ChevronRightIcon className="w-4 h-4 opacity-80" />
+              <ChevronRightIcon className="w-4 h-4 opacity-85" />
             </button>
           </div>
 
