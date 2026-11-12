@@ -4,6 +4,7 @@ import DigitalPass from './components/DigitalPass';
 import ActivityModal from './components/ActivityModal';
 import AdminPasscodeModal from './components/AdminPasscodeModal';
 import MobileBottomNav from './components/MobileBottomNav';
+import PwaInstallPrompt from './components/PwaInstallPrompt';
 import ErrorBoundary from './components/ui/ErrorBoundary';
 import { ShieldLockIcon } from './components/ui/Icons';
 import { SEED_PARTICIPANTS } from './utils/mockData';
@@ -572,6 +573,9 @@ export default function App() {
           onClose={() => setIsAdminModalOpen(false)}
           onUnlock={handleUnlockAdmin}
         />
+
+        {/* PWA Add to Home Screen Prompt */}
+        <PwaInstallPrompt />
 
         {/* Mobile Bottom Navigation Dock */}
         <MobileBottomNav

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { TEAM_COLORS } from '../utils/mockData';
+import { useWakeLock } from '../utils/useWakeLock';
+import { cachePassOffline, getCachedPass, isBrowserOnline } from '../utils/offlinePassStorage';
 import {
   RouteIcon,
   BusIcon,
@@ -13,6 +15,21 @@ import {
 export default function DigitalPass({ participant, onOpenActivity, onOpenSchedule }) {
   const [qrUrl, setQrUrl] = useState('');
   const [serverLanUrl, setServerLanUrl] = useState('');
+  const { isLocked, isSupported } = useWakeLock(true);
+  const [isOnline, setIsOnline] = useState(() => isBrowserOnline());
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const team = (participant && TEAM_COLORS.find(t => t.id === participant.teamColor)) || TEAM_COLORS[0] || { name: 'สีทีม', hex: '#10b981', textHex: '#ffffff' };
 
@@ -50,9 +67,18 @@ export default function DigitalPass({ participant, onOpenActivity, onOpenSchedul
         },
       })
         .then(url => {
-          if (active) setQrUrl(url);
+          if (active) {
+            setQrUrl(url);
+            cachePassOffline(participant, url);
+          }
         })
-        .catch(err => console.error('QR Error:', err));
+        .catch(err => {
+          console.error('QR Error:', err);
+          const cached = getCachedPass(participant?.id);
+          if (cached?.qrDataUrl && active) {
+            setQrUrl(cached.qrDataUrl);
+          }
+        });
     }
     return () => {
       active = false;
@@ -94,6 +120,27 @@ export default function DigitalPass({ participant, onOpenActivity, onOpenSchedul
             <span className="text-[11px] sm:text-xs font-semibold text-zinc-500 dark:text-zinc-400 truncate">
               KoniX (Thailand) Co., Ltd.
             </span>
+          </div>
+
+          {/* Smartphone Telemetry: Live Sync, Offline Resilience & Screen Wake Lock */}
+          <div className="flex items-center justify-between text-[11px] font-medium py-0.5 px-0.5 text-zinc-400">
+            {isOnline ? (
+              <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live Sync (เชื่อมต่อสด)
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-semibold bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                โหมดออฟไลน์ (บัตรพร้อมสแกน)
+              </span>
+            )}
+
+            {isSupported && isLocked && (
+              <span className="inline-flex items-center gap-1 text-zinc-500 dark:text-zinc-400 font-mono text-[10px]">
+                <span>💡 จอสว่างตลอด</span>
+              </span>
+            )}
           </div>
 
           {/* Header Row */}

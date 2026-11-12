@@ -1,0 +1,17 @@
+{
+  "short_name": "ทัวร์ 2026",
+  "name": "ทัวร์ 2026 - ระบบจัดการงานทัวร์ บัตร QR & สุ่มรางวัล",
+  "description": "ระบบจัดการงานทัวร์ สันทนาการ 10 สี บัตรดิจิทัล QR Pass และสุ่มรางวัลบนเวที",
+  "icons": [
+    {
+      "src": "/vnt_logo.jpg",
+      "type": "image/jpeg",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/?source=pwa",
+  "background_color": "#090a0f",
+  "theme_color": "#090a0f",
+  "display": "standalone",
+  "orientation": "portrait"
+}
