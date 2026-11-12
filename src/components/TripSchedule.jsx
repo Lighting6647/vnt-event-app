@@ -1,21 +1,18 @@
 import React, { useState } from 'react';
 import itineraryMapImg from '../assets/itinerary_map.jpg';
-import itineraryDetailsImg from '../assets/itinerary_details.jpg';
 import {
   RouteIcon,
   ClockIcon,
   ZoomInIcon,
-  FileTextIcon,
   DownloadIcon,
   CheckCircleIcon,
 } from './ui/Icons';
 
-export default function TripSchedule({ onNavigateTab }) {
-  const [selectedView, setSelectedView] = useState('details'); // 'details' or 'map'
+export default function TripSchedule() {
   const [activeModalImg, setActiveModalImg] = useState(null);
 
-  const activeImg = selectedView === 'details' ? itineraryDetailsImg : itineraryMapImg;
-  const activeTitle = selectedView === 'details' ? 'ใบกำหนดการเดินทาง 2 วัน 1 คืน (ฉบับเต็ม)' : 'แผนผังเส้นทางและจุดแวะพัก ไป–กลับ';
+  const activeImg = itineraryMapImg;
+  const activeTitle = 'แผนผังกำหนดการเดินทางและจุดแวะพัก ไป–กลับ (ฉบับเต็ม)';
 
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 py-2 sm:py-6 space-y-4 sm:space-y-6">
@@ -54,33 +51,13 @@ export default function TripSchedule({ onNavigateTab }) {
         </div>
       </div>
 
-      {/* 2. Visual Schedule Mode Switcher */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-zinc-900/90 p-2 sm:p-2.5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs">
-        <div className="inline-flex p-1 rounded-xl bg-zinc-100 dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800 w-full sm:w-auto">
-          <button
-            type="button"
-            onClick={() => setSelectedView('details')}
-            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-              selectedView === 'details'
-                ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 shadow-xs'
-                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
-            }`}
-          >
-            <FileTextIcon className="w-4 h-4 text-emerald-500" />
-            <span>ใบกำหนดการ 2 วัน 1 คืน</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedView('map')}
-            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-              selectedView === 'map'
-                ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 shadow-xs'
-                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
-            }`}
-          >
-            <RouteIcon className="w-4 h-4 text-sky-500" />
-            <span>แผนที่เส้นทาง & จุดแวะพัก</span>
-          </button>
+      {/* 2. Visual Schedule Header Controls */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-zinc-900/90 p-3 sm:p-3.5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-50">
+            {activeTitle}
+          </span>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
@@ -94,8 +71,8 @@ export default function TripSchedule({ onNavigateTab }) {
           </button>
           <a
             href={activeImg}
-            download={selectedView === 'details' ? 'konix_tour_schedule_2026.jpg' : 'konix_tour_map_2026.jpg'}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-xs"
+            download="konix_tour_schedule_map_2026.jpg"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-xs"
           >
             <DownloadIcon className="w-3.5 h-3.5" />
             <span>บันทึกภาพ</span>
@@ -106,11 +83,11 @@ export default function TripSchedule({ onNavigateTab }) {
       {/* 3. Main High-Resolution Image Presentation (Front Page Visual Schedule) */}
       <div className="bg-white dark:bg-zinc-900/90 rounded-3xl p-3 sm:p-5 border border-zinc-200/80 dark:border-zinc-800 shadow-md space-y-3">
         <div className="flex items-center justify-between px-1">
-          <span className="text-xs sm:text-sm font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            {activeTitle}
+          <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
+            <CheckCircleIcon className="w-3.5 h-3.5 text-emerald-500" />
+            <span>ภาพความละเอียดสูง โครงการทัวร์ประจำปี 2569</span>
           </span>
-          <span className="text-[11px] text-zinc-400 hidden sm:inline">
+          <span className="text-[11px] text-zinc-400">
             แตะที่ภาพเพื่อซูมขยายเต็มจอ
           </span>
         </div>
@@ -118,17 +95,18 @@ export default function TripSchedule({ onNavigateTab }) {
         {/* Clickable High-Resolution Visual Poster */}
         <div
           onClick={() => setActiveModalImg(activeImg)}
-          className="relative rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-950 border border-zinc-200/60 dark:border-zinc-800 cursor-zoom-in group transition-all"
+          className="relative rounded-2xl overflow-hidden border border-zinc-200/80 dark:border-zinc-800 bg-zinc-950 group cursor-zoom-in shadow-inner"
         >
           <img
             src={activeImg}
             alt={activeTitle}
-            className="w-full h-auto object-contain max-h-[820px] mx-auto rounded-xl transition-transform duration-300 group-hover:scale-[1.01]"
+            className="w-full h-auto object-contain max-h-[820px] mx-auto rounded-2xl group-hover:scale-[1.01] transition-transform duration-300"
+            loading="eager"
           />
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-            <span className="px-4 py-2 rounded-xl bg-zinc-950/80 text-white text-xs font-bold backdrop-blur-sm flex items-center gap-1.5 shadow-lg">
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors flex items-center justify-center pointer-events-none">
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity px-4 py-2 rounded-xl bg-black/80 backdrop-blur-md text-white text-xs font-bold flex items-center gap-2 shadow-lg">
               <ZoomInIcon className="w-4 h-4 text-emerald-400" />
-              <span>แตะเพื่อขยายภาพฉบับเต็ม</span>
+              <span>แตะเพื่อขยายภาพเต็มจอ</span>
             </span>
           </div>
         </div>
@@ -143,30 +121,57 @@ export default function TripSchedule({ onNavigateTab }) {
         </div>
       </div>
 
-      {/* 4. Fullscreen Zoom Modal */}
+      {/* 4. Fullscreen Lightbox Modal */}
       {activeModalImg && (
-        <div 
+        <div
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col p-2 sm:p-4 animate-in fade-in duration-200"
           onClick={() => setActiveModalImg(null)}
-          className="fixed inset-0 z-50 bg-zinc-950/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-6 cursor-zoom-out animate-in fade-in duration-150"
         >
-          <div className="relative max-w-4xl max-h-[94vh] overflow-auto rounded-2xl bg-zinc-900 p-2 sm:p-3 border border-zinc-700 shadow-2xl">
-            <button
-              type="button"
-              onClick={() => setActiveModalImg(null)}
-              aria-label="ปิดหน้าต่างขยายภาพ"
-              className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-zinc-900/90 hover:bg-zinc-800 text-white flex items-center justify-center text-sm font-bold border border-zinc-700 shadow-md transition-colors cursor-pointer"
-            >
-              ✕
-            </button>
-            <img 
-              src={activeModalImg} 
-              alt="ภาพกำหนดการขยายใหญ่" 
-              className="w-full h-auto rounded-xl object-contain max-h-[90vh]"
+          {/* Modal Top Bar */}
+          <div
+            className="flex items-center justify-between p-3 text-white max-w-5xl mx-auto w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <h3 className="text-xs sm:text-sm font-bold truncate">
+                {activeTitle}
+              </h3>
+            </div>
+            
+            <div className="flex items-center gap-2 shrink-0">
+              <a
+                href={activeModalImg}
+                download="konix_tour_schedule_map_2026.jpg"
+                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors flex items-center gap-1.5"
+              >
+                <DownloadIcon className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">ดาวน์โหลด</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => setActiveModalImg(null)}
+                className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold transition-colors cursor-pointer"
+              >
+                ปิด (✕)
+              </button>
+            </div>
+          </div>
+
+          {/* Zoomable Image View */}
+          <div
+            className="flex-1 overflow-auto flex items-center justify-center p-2"
+            onClick={() => setActiveModalImg(null)}
+          >
+            <img
+              src={activeModalImg}
+              alt="Schedule Full View"
+              className="max-w-full max-h-[88vh] object-contain rounded-xl shadow-2xl cursor-default"
+              onClick={(e) => e.stopPropagation()}
             />
           </div>
         </div>
       )}
-
     </div>
   );
 }
