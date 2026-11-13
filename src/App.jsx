@@ -61,14 +61,18 @@ export default function App() {
       const params = new URLSearchParams(window.location.search);
       const urlUser = params.get('user');
       if (urlUser) {
-        const cleanUser = urlUser.toUpperCase();
-        try {
-          localStorage.setItem('vnt_my_user_id', cleanUser);
-        } catch {}
-        return cleanUser;
+        const cleanUser = urlUser.trim();
+        if (cleanUser && cleanUser !== 'null' && cleanUser !== 'undefined') {
+          try {
+            localStorage.setItem('vnt_my_user_id', cleanUser);
+          } catch {}
+          return cleanUser;
+        }
       }
       const savedUser = localStorage.getItem('vnt_my_user_id');
-      if (savedUser && savedUser.trim()) return savedUser.trim();
+      if (savedUser && savedUser.trim() && savedUser !== 'null' && savedUser !== 'undefined') {
+        return savedUser.trim();
+      }
     } catch {}
     return null;
   });
@@ -79,10 +83,12 @@ export default function App() {
       const urlUser = params.get('user');
       const urlTab = params.get('tab');
       if (urlTab === 'admin') return false;
-      if (urlUser) return false;
+      if (urlUser && urlUser !== 'null' && urlUser.trim()) return false;
       const savedUser = localStorage.getItem('vnt_my_user_id');
-      if (savedUser) return false;
-      return true; // First time visitor with no user parameter
+      if (savedUser && savedUser.trim() && savedUser !== 'null' && savedUser !== 'undefined') {
+        return false; // มีการเลือกชื่อไว้แล้ว ไม่ต้องเปิดหน้าต่างนี้
+      }
+      return true; // เปิดใช้งานครั้งแรกโดยไม่มีรหัสผู้ใช้: แสดงหน้าต่างเลือกชื่อทันที
     } catch {
       return false;
     }
@@ -180,9 +186,11 @@ export default function App() {
 
   useEffect(() => {
     selectedIdRef.current = selectedId;
-    try {
-      localStorage.setItem('vnt_my_user_id', selectedId);
-    } catch {}
+    if (selectedId && selectedId !== 'null' && selectedId !== 'undefined') {
+      try {
+        localStorage.setItem('vnt_my_user_id', selectedId);
+      } catch {}
+    }
   }, [selectedId]);
 
   useEffect(() => {
@@ -1101,13 +1109,15 @@ export default function App() {
           onUnlock={handleUnlockAdmin}
         />
 
-        {/* Mobile Bottom Navigation Dock */}
-        <MobileBottomNav
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          isAdminUnlocked={isAdminUnlocked}
-          setIsAdminModalOpen={setIsAdminModalOpen}
-        />
+        {/* Mobile Bottom Navigation Dock - Hide when onboarding identity modal is active */}
+        {!isOnboardingOpen && (
+          <MobileBottomNav
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            isAdminUnlocked={isAdminUnlocked}
+            setIsAdminModalOpen={setIsAdminModalOpen}
+          />
+        )}
 
         {/* Corporate Footer */}
         <footer className="py-8 pb-28 sm:pb-10 border-t border-zinc-200/80 dark:border-zinc-800/80 text-center text-xs text-zinc-500 dark:text-zinc-400 space-y-1 px-4">

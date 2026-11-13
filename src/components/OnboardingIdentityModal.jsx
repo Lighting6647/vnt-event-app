@@ -64,7 +64,7 @@ export default function OnboardingIdentityModal({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200"
     >
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 w-full sm:max-w-xl max-h-[92vh] sm:max-h-[85vh] rounded-t-3xl sm:rounded-3xl flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-6 duration-300">
         
@@ -206,7 +206,7 @@ export default function OnboardingIdentityModal({
 
         {/* Confirmation Footer Bar */}
         {confirmingPerson && (
-          <div className="p-4 sm:p-5 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xl animate-in slide-in-from-bottom-2 shrink-0">
+          <div className="p-4 sm:p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xl animate-in slide-in-from-bottom-2 shrink-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">
