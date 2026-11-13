@@ -1,6 +1,5 @@
 import React from 'react';
 import BrandLogo from './BrandLogo';
-import { TEAM_COLORS, findParticipantById } from '../utils/mockData';
 import {
   PassIcon,
   RouteIcon,
@@ -12,16 +11,10 @@ import {
 export default function AppleNavbar({
   activeTab,
   setActiveTab,
-  participants,
-  currentParticipant,
-  selectedId,
+  participants = [],
   isDark,
   setIsDark,
-  onOpenSwitchUser,
 }) {
-  const currentPerson = currentParticipant || (selectedId ? findParticipantById(participants, selectedId) : null);
-  const team = (currentPerson && TEAM_COLORS.find(t => t.id === currentPerson.teamColor)) || TEAM_COLORS[0];
-
   // Public Categories: strictly attendee-facing tabs (No Admin in public shelf)
   const categories = [
     { id: 'schedule', name: 'กำหนดการ', Icon: RouteIcon, desc: '25–26 ธ.ค. 69' },
@@ -55,28 +48,8 @@ export default function AppleNavbar({
             </span>
           </div>
 
-          {/* Right Controls: Attendee Own Identity Badge (No Public Search Bar) & Theme Toggle */}
+          {/* Right Controls: Theme Toggle (ช่องแสดงชื่อบนแถบบนตัดออกถาวรตามคำสั่ง: หลังจากเลือกแล้วช่องนี้ต้องหายไป ห้ามแสดงอีก) */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Attendee Personal Identity Locked Badge (Read-Only: Admin Only Can Change) */}
-            <div
-              className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-white/[0.08] select-none shadow-xs text-left"
-              title={currentPerson ? `บัตรของคุณ: ${currentPerson.name} (หากต้องการแก้ไขข้อมูลหรือเปลี่ยนชื่อ กรุณาติดต่อ Admin)` : 'ยังไม่ได้ระบุตัวตน'}
-            >
-              <span
-                className="w-2.5 h-2.5 rounded-full shrink-0"
-                style={{ backgroundColor: team?.hex || '#10b981' }}
-              />
-              <span className="text-xs sm:text-sm font-black text-zinc-900 dark:text-zinc-100 truncate max-w-[130px] xs:max-w-[170px] sm:max-w-[220px]">
-                {currentPerson ? currentPerson.name : 'ยังไม่ระบุชื่อ'}
-              </span>
-              <span className="text-xs font-mono font-bold px-1.5 py-0.5 rounded-md bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 shrink-0">
-                {currentPerson ? currentPerson.id : '---'}
-              </span>
-              <span className="text-[10px] text-zinc-400 dark:text-zinc-500 hidden sm:inline" title="ล็อคตัวตนแล้ว ติดต่อ Admin เพื่อแก้ไข">
-                🔒
-              </span>
-            </div>
-
             <button
               onClick={() => setIsDark(!isDark)}
               title={isDark ? 'เปลี่ยนเป็นโหมดสว่าง' : 'เปลี่ยนเป็นโหมดมืด'}
