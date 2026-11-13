@@ -57,24 +57,25 @@ export default function AppleNavbar({
 
           {/* Right Controls: Attendee Own Identity Badge (No Public Search Bar) & Theme Toggle */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Attendee Personal Identity Badge (Tap to switch user) */}
-            <button
-              type="button"
-              onClick={() => onOpenSwitchUser && onOpenSwitchUser()}
-              className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200/80 dark:hover:bg-zinc-800 px-3.5 py-1.5 rounded-xl border border-zinc-200 dark:border-white/[0.08] hover:border-emerald-500/50 select-none shadow-xs cursor-pointer transition-all active:scale-95 text-left"
-              title="แตะเพื่อสลับชื่อหรือเปลี่ยนผู้ใช้งาน"
+            {/* Attendee Personal Identity Locked Badge (Read-Only: Admin Only Can Change) */}
+            <div
+              className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-900 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-white/[0.08] select-none shadow-xs text-left"
+              title={currentPerson ? `บัตรของคุณ: ${currentPerson.name} (หากต้องการแก้ไขข้อมูลหรือเปลี่ยนชื่อ กรุณาติดต่อ Admin)` : 'ยังไม่ได้ระบุตัวตน'}
             >
               <span
-                className="w-2.5 h-2.5 rounded-full shrink-0 animate-pulse"
+                className="w-2.5 h-2.5 rounded-full shrink-0"
                 style={{ backgroundColor: team?.hex || '#10b981' }}
               />
-              <span className="text-xs sm:text-sm font-black text-zinc-900 dark:text-zinc-100 truncate max-w-[140px] xs:max-w-[180px] sm:max-w-[240px]">
-                {currentPerson ? currentPerson.name : 'แตะเลือกชื่อ'}
+              <span className="text-xs sm:text-sm font-black text-zinc-900 dark:text-zinc-100 truncate max-w-[130px] xs:max-w-[170px] sm:max-w-[220px]">
+                {currentPerson ? currentPerson.name : 'ยังไม่ระบุชื่อ'}
               </span>
-              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 shrink-0">
+              <span className="text-xs font-mono font-bold px-1.5 py-0.5 rounded-md bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 shrink-0">
                 {currentPerson ? currentPerson.id : '---'}
               </span>
-            </button>
+              <span className="text-[10px] text-zinc-400 dark:text-zinc-500 hidden sm:inline" title="ล็อคตัวตนแล้ว ติดต่อ Admin เพื่อแก้ไข">
+                🔒
+              </span>
+            </div>
 
             <button
               onClick={() => setIsDark(!isDark)}

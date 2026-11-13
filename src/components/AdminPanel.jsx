@@ -16,6 +16,7 @@ import {
   KeyIcon,
   MegaphoneIcon,
   Volume2Icon,
+  PassIcon,
 } from './ui/Icons';
 
 export default function AdminPanel({
@@ -28,11 +29,40 @@ export default function AdminPanel({
   onAddScore,
   onAwardPrize,
   onNavigateTab,
+  currentSelectedId,
+  onAdminSwitchUser,
+  onAdminClearUser,
+  onAdminOpenOnboardingModal,
 }) {
   const [adminTab, setAdminTab] = useState('luckydraw');
   const [searchTerm, setSearchTerm] = useState('');
   const [colorFilter, setColorFilter] = useState('all');
   const [busFilter, setBusFilter] = useState('all');
+
+  // Attendee Identity & Switch Management State
+  const [identitySearch, setIdentitySearch] = useState('');
+  const [identityBusFilter, setIdentityBusFilter] = useState('all');
+  const [identityActionMsg, setIdentityActionMsg] = useState('');
+
+  const currentDevicePerson = currentSelectedId
+    ? participants.find((p) => String(p.id) === String(currentSelectedId))
+    : null;
+
+  const filteredIdentityList = participants.filter((p) => {
+    if (!p) return false;
+    if (identityBusFilter !== 'all' && (!p.busNumber || !p.busNumber.includes(identityBusFilter))) {
+      return false;
+    }
+    if (identitySearch.trim()) {
+      const q = identitySearch.toLowerCase().trim();
+      const matchName = p.name && p.name.toLowerCase().includes(q);
+      const matchId = p.id && String(p.id).toLowerCase().includes(q);
+      const matchTeam = p.teamColor && p.teamColor.toLowerCase().includes(q);
+      const matchBus = p.busNumber && p.busNumber.toLowerCase().includes(q);
+      if (!matchName && !matchId && !matchTeam && !matchBus) return false;
+    }
+    return true;
+  });
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState('');
@@ -631,6 +661,18 @@ export default function AdminPanel({
             >
               <UsersIcon className="w-4 h-4 text-sky-500" />
               <span>ฐานข้อมูลรายชื่อ ({participants.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setAdminTab('identity')}
+              className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                adminTab === 'identity'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 shadow-xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
+              }`}
+            >
+              <PassIcon className="w-4 h-4 text-emerald-500" />
+              <span>สลับ/รีเซ็ตชื่อผู้ร่วมงาน</span>
             </button>
             <button
               type="button"
@@ -1629,6 +1671,220 @@ export default function AdminPanel({
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab: Attendee Identity & Device Switch (Admin Exclusive) */}
+      {adminTab === 'identity' && (
+        <div className="space-y-6">
+          {/* Header Card */}
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 sm:p-7 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 dark:border-zinc-800 pb-5">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    ADMIN EXCLUSIVE ONLY
+                  </span>
+                  <span className="text-xs font-mono text-zinc-400">ควบคุมสิทธิ์ตัวตน 182 ท่าน</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-zinc-50">
+                  ศูนย์จัดการสลับ & รีเซ็ตตัวตนผู้ร่วมงาน
+                </h3>
+                <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 max-w-2xl">
+                  สำหรับแอดมินเท่านั้น: ใช้กรณีพนักงานเลือกชื่อตนเองผิด หรือต้องการผูกเครื่องใหม่ โดยผู้ร่วมงานทั่วไปไม่สามารถแก้ไขเองได้
+                </p>
+              </div>
+
+              {/* Current Device Binding Status Card */}
+              <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800 flex flex-col gap-2 min-w-[280px]">
+                <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                  ตัวตนของอุปกรณ์เครื่องนี้ (Current Device):
+                </span>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span
+                      className="w-3 h-3 rounded-full shrink-0"
+                      style={{
+                        backgroundColor:
+                          (currentDevicePerson &&
+                            TEAM_COLORS.find((t) => t.id === currentDevicePerson.teamColor)?.hex) ||
+                          '#71717a',
+                      }}
+                    />
+                    <strong className="text-sm font-black text-zinc-900 dark:text-zinc-100 truncate">
+                      {currentDevicePerson ? currentDevicePerson.name : 'ยังไม่ระบุตัวตน'}
+                    </strong>
+                    <span className="text-xs font-mono text-zinc-400">
+                      ({currentDevicePerson ? currentDevicePerson.id : '---'})
+                    </span>
+                  </div>
+
+                  {currentDevicePerson && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm(`ต้องการล้างตัวตนของเครื่องนี้ (${currentDevicePerson.name}) ออกใช่หรือไม่?`)) {
+                          onAdminClearUser && onAdminClearUser();
+                          setIdentityActionMsg('ล้างตัวตนของอุปกรณ์เครื่องนี้เรียบร้อยแล้ว');
+                          setTimeout(() => setIdentityActionMsg(''), 4000);
+                        }
+                      }}
+                      className="px-2.5 py-1 rounded-lg text-xs font-bold text-red-600 dark:text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 transition-colors cursor-pointer shrink-0"
+                    >
+                      ล้างตัวตน
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 pt-1 border-t border-zinc-200/50 dark:border-zinc-800/80">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onAdminOpenOnboardingModal && onAdminOpenOnboardingModal();
+                    }}
+                    className="w-full py-1.5 px-3 rounded-xl bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-xs font-bold text-zinc-800 dark:text-zinc-200 transition-colors cursor-pointer"
+                  >
+                    🔍 เปิดหน้าต่างเลือกชื่อบนเครื่องนี้ (Onboarding Picker)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Notification message */}
+            {identityActionMsg && (
+              <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs sm:text-sm font-bold flex items-center gap-2 animate-in fade-in">
+                <span>✓</span>
+                <span>{identityActionMsg}</span>
+              </div>
+            )}
+
+            {/* Filter and Search controls */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
+                {['all', 'รถบัสคันที่ 1', 'รถบัสคันที่ 2', 'รถบัสคันที่ 3', 'รถบัสคันที่ 4', 'รถบัสคันที่ 5'].map((b) => (
+                  <button
+                    key={b}
+                    type="button"
+                    onClick={() => setIdentityBusFilter(b)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
+                      identityBusFilter === b
+                        ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-950 shadow-xs'
+                        : 'bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
+                    }`}
+                  >
+                    {b === 'all' ? 'ทุกลำดับรถ' : b.replace('รถบัสคันที่ ', 'บัส ')}
+                  </button>
+                ))}
+              </div>
+
+              <div className="w-full sm:w-72">
+                <input
+                  type="text"
+                  placeholder="ค้นหาชื่อ, รหัส, สีทีม..."
+                  value={identitySearch}
+                  onChange={(e) => setIdentitySearch(e.target.value)}
+                  className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Attendee List Table / Grid with Switch Actions */}
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-xs">
+            <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+              <span className="text-xs font-bold text-zinc-500">
+                พบรายชื่อผู้ร่วมงาน ({filteredIdentityList.length} ท่าน)
+              </span>
+              <span className="text-xs text-zinc-400">
+                กดสลับเครื่อง หรือคัดลอกลิงก์ส่งให้พนักงาน
+              </span>
+            </div>
+
+            <div className="divide-y divide-zinc-100 dark:divide-zinc-800 max-h-[600px] overflow-y-auto">
+              {filteredIdentityList.map((p) => {
+                const team = TEAM_COLORS.find((t) => t.id === p.teamColor) || TEAM_COLORS[0];
+                const isCurrent = currentSelectedId && String(currentSelectedId) === String(p.id);
+
+                return (
+                  <div
+                    key={p.id}
+                    className={`p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors ${
+                      isCurrent
+                        ? 'bg-emerald-500/5 dark:bg-emerald-500/10'
+                        : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/40'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className="w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-xs shrink-0 text-white shadow-xs"
+                        style={{ backgroundColor: team.hex }}
+                      >
+                        {p.id}
+                      </div>
+
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <strong className="text-sm sm:text-base font-black text-zinc-900 dark:text-zinc-100 truncate">
+                            {p.name}
+                          </strong>
+                          {isCurrent && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
+                              เครื่องนี้ผูกอยู่
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 mt-0.5">
+                          <span style={{ color: team.hex }} className="font-bold">
+                            ● {team.name}
+                          </span>
+                          <span>•</span>
+                          <span>{p.busNumber?.split(' ')[0] || p.busNumber}</span>
+                          <span>•</span>
+                          <span className={p.foodClaimed ? 'text-emerald-600 font-bold' : 'text-amber-600'}>
+                            {p.foodClaimed ? '✓ รับอาหารแล้ว' : '⏳ รอรับอาหาร'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const directUrl = `${window.location.origin}/?user=${encodeURIComponent(p.id)}&tab=pass`;
+                          navigator.clipboard.writeText(directUrl);
+                          setIdentityActionMsg(`คัดลอกลิงก์ส่วนตัวของ ${p.name} ลงคลิปบอร์ดแล้ว: ส่งทาง LINE ได้ทันที!`);
+                          setTimeout(() => setIdentityActionMsg(''), 5000);
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-xs font-bold border border-zinc-200 dark:border-zinc-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+                        title="คัดลอกลิงก์ส่วนตัวส่งให้พนักงาน"
+                      >
+                        <span>🔗</span>
+                        <span>คัดลอกลิงก์ส่งพนักงาน</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onAdminSwitchUser && onAdminSwitchUser(p.id);
+                          setIdentityActionMsg(`สลับอุปกรณ์เครื่องนี้เป็น "${p.name}" (รหัส ${p.id}) เรียบร้อยแล้ว`);
+                          setTimeout(() => setIdentityActionMsg(''), 4000);
+                        }}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer ${
+                          isCurrent
+                            ? 'bg-emerald-600 text-white cursor-default'
+                            : 'bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-zinc-950 active:scale-95'
+                        }`}
+                      >
+                        <span>{isCurrent ? '✓ ผูกเครื่องนี้แล้ว' : 'สลับเครื่องนี้เป็นคนนี้'}</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

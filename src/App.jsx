@@ -904,6 +904,35 @@ export default function App() {
                   onAddScore={handleAddScore}
                   onAwardPrize={handleAwardPrize}
                   onNavigateTab={(tab) => setActiveTab(tab)}
+                  currentSelectedId={selectedId}
+                  onAdminSwitchUser={(newUserId) => {
+                    const cleanId = String(newUserId).trim();
+                    setSelectedId(cleanId);
+                    try {
+                      localStorage.setItem('vnt_my_user_id', cleanId);
+                    } catch {}
+                    const matched = findParticipantById(participants, cleanId);
+                    if (matched) {
+                      setWelcomeIdentityToast({
+                        name: matched.name,
+                        id: matched.id,
+                        teamColor: matched.teamColor,
+                        busNumber: matched.busNumber,
+                      });
+                      playSuccess();
+                      speakAnnouncement(`สลับเป็นคุณ ${matched.name} เรียบร้อยแล้วค่ะ`);
+                    }
+                  }}
+                  onAdminClearUser={() => {
+                    setSelectedId(null);
+                    try {
+                      localStorage.removeItem('vnt_my_user_id');
+                    } catch {}
+                  }}
+                  onAdminOpenOnboardingModal={() => {
+                    setAllowOnboardingClose(true);
+                    setIsOnboardingOpen(true);
+                  }}
                 />
               )}
             </Suspense>
