@@ -19,7 +19,7 @@ export default function AppleNavbar({
   setIsDark,
   onOpenSwitchUser,
 }) {
-  const currentPerson = currentParticipant || findParticipantById(participants, selectedId);
+  const currentPerson = currentParticipant || (selectedId ? findParticipantById(participants, selectedId) : null);
   const team = (currentPerson && TEAM_COLORS.find(t => t.id === currentPerson.teamColor)) || TEAM_COLORS[0];
 
   // Public Categories: strictly attendee-facing tabs (No Admin in public shelf)
@@ -69,10 +69,10 @@ export default function AppleNavbar({
                 style={{ backgroundColor: team?.hex || '#10b981' }}
               />
               <span className="text-xs sm:text-sm font-black text-zinc-900 dark:text-zinc-100 truncate max-w-[140px] xs:max-w-[180px] sm:max-w-[240px]">
-                {currentPerson?.name || 'ผู้ร่วมงาน'}
+                {currentPerson ? currentPerson.name : 'แตะเลือกชื่อ'}
               </span>
               <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 shrink-0">
-                {currentPerson?.id}
+                {currentPerson ? currentPerson.id : '---'}
               </span>
             </button>
 

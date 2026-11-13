@@ -12,7 +12,7 @@ import {
   ChevronRightIcon,
 } from './ui/Icons';
 
-export default function DigitalPass({ participant, onOpenActivity, onOpenSchedule }) {
+export default function DigitalPass({ participant, onOpenActivity, onOpenSchedule, onOpenOnboarding }) {
   const [qrUrl, setQrUrl] = useState('');
   const [serverLanUrl, setServerLanUrl] = useState('');
   const { isLocked, isSupported } = useWakeLock(true);
@@ -85,9 +85,28 @@ export default function DigitalPass({ participant, onOpenActivity, onOpenSchedul
 
   if (!participant) {
     return (
-      <div className="max-w-md mx-auto p-6">
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 text-center text-zinc-600 dark:text-zinc-300 text-base font-semibold">
-          กรุณาเลือกรายชื่อผู้ร่วมงานจากเมนูด้านบน
+      <div className="max-w-md mx-auto p-4 sm:p-6">
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 text-center text-zinc-600 dark:text-zinc-300 space-y-4 shadow-sm">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-3xl">
+            🪪
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-lg sm:text-xl font-bold text-zinc-900 dark:text-zinc-50">
+              ยังไม่ได้ระบุตัวตนผู้ร่วมงาน
+            </h3>
+            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
+              แตะปุ่มด้านล่างเพื่อเลือกชื่อของคุณและรับบัตรดิจิทัลประจำตัว
+            </p>
+          </div>
+          {onOpenOnboarding && (
+            <button
+              type="button"
+              onClick={onOpenOnboarding}
+              className="px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer"
+            >
+              แตะเลือกชื่อของฉัน 🌴
+            </button>
+          )}
         </div>
       </div>
     );

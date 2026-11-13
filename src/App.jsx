@@ -68,9 +68,9 @@ export default function App() {
         return cleanUser;
       }
       const savedUser = localStorage.getItem('vnt_my_user_id');
-      if (savedUser) return savedUser;
+      if (savedUser && savedUser.trim()) return savedUser.trim();
     } catch {}
-    return SEED_PARTICIPANTS[0]?.id || '500';
+    return null;
   });
   const [activityModalUser, setActivityModalUser] = useState(null);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(() => {
@@ -718,17 +718,18 @@ export default function App() {
   };
 
   const currentParticipant = useMemo(() => {
+    if (!selectedId) return null;
     return findParticipantById(participants, selectedId);
   }, [participants, selectedId]);
 
   // Auto-bind identity: persist verified user ID to localStorage so reloads keep identity
   useEffect(() => {
-    if (currentParticipant?.id) {
+    if (selectedId && currentParticipant?.id) {
       try {
         localStorage.setItem('vnt_my_user_id', String(currentParticipant.id));
       } catch {}
     }
-  }, [currentParticipant]);
+  }, [selectedId, currentParticipant]);
 
   return (
     <div className={isDark ? 'dark' : ''}>
@@ -816,6 +817,10 @@ export default function App() {
                   participant={currentParticipant}
                   onOpenActivity={(p) => setActivityModalUser(p)}
                   onOpenSchedule={() => setActiveTab('schedule')}
+                  onOpenOnboarding={() => {
+                    setAllowOnboardingClose(false);
+                    setIsOnboardingOpen(true);
+                  }}
                 />
               )}
 
