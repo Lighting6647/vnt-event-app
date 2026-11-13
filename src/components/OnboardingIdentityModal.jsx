@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { TEAM_COLORS, BUSES } from '../utils/mockData';
 import { SearchIcon, XIcon, CheckCircleIcon, UsersIcon } from './ui/Icons';
-import { playSuccess, playTick } from '../utils/soundEffects';
+import { playSuccess, playTick, playFanfare, speakAnnouncement } from '../utils/soundEffects';
 
 export default function OnboardingIdentityModal({
   isOpen,
@@ -54,7 +54,8 @@ export default function OnboardingIdentityModal({
 
   const handleConfirm = () => {
     if (!confirmingPerson) return;
-    playSuccess();
+    playFanfare();
+    speakAnnouncement(`สวัสดีคุณ ${confirmingPerson.name} ยินดีต้อนรับสู่งานทัวร์ 2026 ค่ะ`);
     onSelectParticipant(confirmingPerson);
     setConfirmingPerson(null);
   };

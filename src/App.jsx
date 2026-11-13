@@ -211,6 +211,8 @@ export default function App() {
             teamColor: matched.teamColor,
             busNumber: matched.busNumber,
           });
+          playSuccess();
+          speakAnnouncement(`สวัสดีคุณ ${matched.name} ยินดีต้อนรับสู่งานทัวร์ 2026 ค่ะ`);
           setTimeout(() => {
             setWelcomeIdentityToast(null);
           }, 4500);

@@ -3,6 +3,7 @@ import QRCode from 'qrcode';
 import { TEAM_COLORS } from '../utils/mockData';
 import { useWakeLock } from '../utils/useWakeLock';
 import { cachePassOffline, getCachedPass, isBrowserOnline } from '../utils/offlinePassStorage';
+import { speakAnnouncement } from '../utils/soundEffects';
 import {
   RouteIcon,
   BusIcon,
@@ -228,6 +229,67 @@ export default function DigitalPass({ participant, onOpenActivity, onOpenSchedul
               )}
             </div>
 
+          </div>
+
+          {/* 🥪 Self-Service Meal Checkin Alert Banner */}
+          <div
+            className={`p-4 sm:p-5 rounded-2xl border transition-all ${
+              participant.foodClaimed
+                ? 'bg-emerald-500/10 dark:bg-emerald-950/30 border-emerald-500/40 text-emerald-900 dark:text-emerald-100 shadow-sm'
+                : 'bg-amber-500/10 dark:bg-amber-950/30 border-amber-500/40 text-amber-900 dark:text-amber-100 shadow-md ring-1 ring-amber-500/20'
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="w-11 h-11 rounded-2xl bg-amber-500/20 dark:bg-amber-500/30 flex items-center justify-center text-2xl shrink-0 shadow-xs">
+                  {participant.foodClaimed ? '✅' : '🥪'}
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                      จุดรับอาหารเช้า & สแกนเช็คชื่อ
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-800 dark:text-amber-300">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                      เวลา 07:00–08:00 น.
+                    </span>
+                  </div>
+                  <h4 className="text-sm sm:text-base font-black mt-1">
+                    {participant.foodClaimed
+                      ? `รับอาหารเช้าแล้ว (เวลา ${foodTime} น.) ขอให้อร่อยกับมื้อเช้าครับ!`
+                      : 'เปิดรับอาหารเช้าแล้ว! ยื่น QR ด้านล่างให้สตาฟฟ์สแกน'}
+                  </h4>
+                </div>
+              </div>
+
+              {/* Sound announcement button */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (participant.foodClaimed) {
+                    speakAnnouncement(`คุณ ${participant.name} ได้รับอาหารเช้าเรียบร้อยแล้วเมื่อเวลา ${foodTime} น. ค่ะ`);
+                  } else {
+                    speakAnnouncement(`จุดรับอาหารเช้าเปิดเวลา 07:00 ถึง 08:00 น. โปรดยื่น QR Code ให้สตาฟฟ์ประจำคันรถสแกนเพื่อรับอาหารเช้าค่ะ`);
+                  }
+                }}
+                className="p-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-800 dark:text-amber-300 transition-colors shrink-0 cursor-pointer text-base active:scale-95 shadow-xs"
+                title="ฟังเสียงประกาศข้อมูลอาหารเช้า"
+              >
+                🔊
+              </button>
+            </div>
+
+            <div className="mt-3 pt-2.5 border-t border-amber-500/20 flex flex-wrap items-center justify-between gap-2 text-xs font-medium">
+              <span className="text-zinc-600 dark:text-zinc-300 flex items-center gap-1.5">
+                <span>📍 สถานที่:</span>
+                <strong className="text-zinc-900 dark:text-zinc-100">
+                  ด้านหน้ารถบัสของคุณ ({participant.busNumber?.split(' ')[0] || participant.busNumber})
+                </strong>
+              </span>
+              <span className="font-bold text-amber-700 dark:text-amber-400">
+                {participant.foodClaimed ? '✓ สถานะ: รับสิทธิ์เรียบร้อย' : '⚠️ ป้องกันการรับซ้ำ (1 สิทธิ์/ท่าน)'}
+              </span>
+            </div>
           </div>
 
           {/* QR Code Verification Box */}
