@@ -2,7 +2,16 @@ import React, { useState, useEffect } from 'react';
 import StaffScanner from './StaffScanner';
 import LuckyDraw from './LuckyDraw';
 import { TEAM_COLORS, BUSES } from '../utils/mockData';
-import { playSuccess, playWarning, playPAChime, speakAnnouncement } from '../utils/soundEffects';
+import {
+  playSuccess,
+  playWarning,
+  playPAChime,
+  speakAnnouncement,
+  AI_VOICES,
+  getCurrentVoiceId,
+  setCurrentVoiceId,
+  previewVoice,
+} from '../utils/soundEffects';
 import {
   ShieldLockIcon,
   TrophyIcon,
@@ -424,6 +433,23 @@ export default function AdminPanel({
   const [newPasscode, setNewPasscode] = useState('');
   const [confirmPasscode, setConfirmPasscode] = useState('');
   const [passcodeMsg, setPasscodeMsg] = useState({ type: '', text: '' });
+
+  // Settings Tab State: 10 AI Voice Models & Gemini TTS Engine
+  const [adminVoiceId, setAdminVoiceId] = useState(() => getCurrentVoiceId());
+  const [testingVoiceId, setTestingVoiceId] = useState(null);
+
+  const handleSelectAdminVoice = (newId) => {
+    setAdminVoiceId(newId);
+    setCurrentVoiceId(newId);
+    const chosen = AI_VOICES.find((v) => v.id === newId);
+    showToast(`เปลี่ยนเสียงระบบเป็น ${chosen?.name || newId}`);
+  };
+
+  const handlePreviewAdminVoice = (id) => {
+    setTestingVoiceId(id);
+    previewVoice(id);
+    setTimeout(() => setTestingVoiceId(null), 2500);
+  };
 
   const handleSaveCustomPasscode = (e) => {
     e.preventDefault();
@@ -1997,7 +2023,105 @@ export default function AdminPanel({
             </form>
           </div>
 
-          {/* Card 2: Reporting & Excel Export Hub */}
+          {/* Card 2: 10 AI Voice Models & Gemini TTS Engine */}
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center">
+                  <Volume2Icon className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+                    <span>ระบบเสียงสปีกเกอร์สังเคราะห์ AI (10 AI Voice Models)</span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-emerald-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[10px] font-mono font-bold">
+                      Google Gemini & Stage MCs
+                    </span>
+                  </h3>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    เลือกและทดสอบเสียงสปีกเกอร์สำหรับขานชื่อผู้ได้รับรางวัล Lucky Draw บนเวที, เสียงต้อนรับ, และเสียงตามสาย
+                  </p>
+                </div>
+              </div>
+
+              {/* Current Active Voice Pill */}
+              <div className="shrink-0">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  <span>กำลังใช้งาน: {AI_VOICES.find((v) => v.id === adminVoiceId)?.name}</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Grid of 10 AI Voice Profiles */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {AI_VOICES.map((v) => {
+                const isSelected = adminVoiceId === v.id;
+                const isTesting = testingVoiceId === v.id;
+                return (
+                  <div
+                    key={v.id}
+                    onClick={() => handleSelectAdminVoice(v.id)}
+                    className={`p-3.5 sm:p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                      isSelected
+                        ? 'bg-amber-500/[0.08] dark:bg-amber-500/[0.12] border-amber-500 shadow-sm ring-1 ring-amber-500/50'
+                        : 'bg-zinc-50 dark:bg-zinc-950/60 border-zinc-200/80 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
+                    }`}
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center border ${
+                            isSelected ? 'border-amber-500 bg-amber-500 text-zinc-950 text-[9px] font-black' : 'border-zinc-400'
+                          }`}>
+                            {isSelected ? '✓' : ''}
+                          </span>
+                          <span className="text-xs sm:text-sm font-extrabold text-zinc-900 dark:text-zinc-50">
+                            {v.name}
+                          </span>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold ${
+                          v.tag === 'Gemini AI'
+                            ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/20'
+                            : v.tag === 'Stage MC'
+                            ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                            : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300'
+                        }`}>
+                          {v.tag}
+                        </span>
+                      </div>
+                      <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed pl-5">
+                        {v.desc}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1 border-t border-zinc-200/60 dark:border-zinc-800/80 pl-5">
+                      <span className="text-[11px] text-zinc-400 font-mono">
+                        เพศ: {v.gender === 'female' ? 'หญิง (Female)' : 'ชาย (Male)'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePreviewAdminVoice(v.id);
+                        }}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                          isTesting
+                            ? 'bg-amber-500 text-zinc-950 animate-pulse'
+                            : 'bg-zinc-200/80 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-amber-500/20 hover:text-amber-500'
+                        }`}
+                        title="คลิกเพื่อทดสอบฟังเสียงประโยคตัวอย่าง"
+                      >
+                        <Volume2Icon className={`w-3.5 h-3.5 ${isTesting ? 'animate-bounce' : ''}`} />
+                        <span>{isTesting ? 'กำลังพูด...' : '▶️ ฟังตัวอย่าง'}</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Card 3: Reporting & Excel Export Hub */}
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
             <div className="flex items-center gap-3 pb-3 border-b border-zinc-100 dark:border-zinc-800">
               <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 flex items-center justify-center">

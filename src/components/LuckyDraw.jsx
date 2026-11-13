@@ -1,13 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { DEFAULT_PRIZES, TEAM_COLORS } from '../utils/mockData';
-import { playTick, playFanfare } from '../utils/soundEffects';
+import {
+  playTick,
+  playFanfare,
+  AI_VOICES,
+  getCurrentVoiceId,
+  setCurrentVoiceId,
+  speakAnnouncement,
+  previewVoice,
+} from '../utils/soundEffects';
 import {
   TrophyIcon,
   SparklesIcon,
   CheckCircleIcon,
   MaximizeIcon,
   MinimizeIcon,
+  Volume2Icon,
 } from './ui/Icons';
 
 export default function LuckyDraw({ participants, onAwardPrize }) {
@@ -19,6 +28,8 @@ export default function LuckyDraw({ participants, onAwardPrize }) {
   const [winner, setWinner] = useState(null);
   const [noticeMsg, setNoticeMsg] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [activeVoiceId, setActiveVoiceId] = useState(() => getCurrentVoiceId());
+  const [isPlayingTestVoice, setIsPlayingTestVoice] = useState(false);
 
   const containerRef = useRef(null);
 
@@ -92,7 +103,6 @@ export default function LuckyDraw({ participants, onAwardPrize }) {
   // Stage Keyboard Shortcuts: Space/Enter = Spin, F = Fullscreen toggle
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Ignore when user is typing inside input or select
       if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target?.tagName)) return;
 
       if ((e.code === 'Space' || e.code === 'Enter') && !isSpinning && eligiblePool.length > 0) {
@@ -108,7 +118,18 @@ export default function LuckyDraw({ participants, onAwardPrize }) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isSpinning, eligiblePool, selectedPrize, filterMode]);
+  }, [isSpinning, eligiblePool, selectedPrize, filterMode, activeVoiceId]);
+
+  const handleVoiceChange = (newVoiceId) => {
+    setActiveVoiceId(newVoiceId);
+    setCurrentVoiceId(newVoiceId);
+  };
+
+  const handleTestVoice = (voiceIdToTest) => {
+    setIsPlayingTestVoice(true);
+    previewVoice(voiceIdToTest || activeVoiceId);
+    setTimeout(() => setIsPlayingTestVoice(false), 2800);
+  };
 
   const startRandomDraw = () => {
     if (eligiblePool.length === 0) {
@@ -157,6 +178,12 @@ export default function LuckyDraw({ participants, onAwardPrize }) {
         playFanfare();
         triggerConfetti();
         onAwardPrize(finalWinner.id, selectedPrize.name);
+
+        // TTS Stage Winner Announcement: ขานชื่อและรหัสพนักงานอัตโนมัติเมื่อหมุนหยุด
+        setTimeout(() => {
+          const announceText = `ขอแสดงความยินดีกับคุณ ${finalWinner.name} รหัสพนักงาน ${finalWinner.id} ได้รับรางวัล ${selectedPrize.name} ค่ะ`;
+          speakAnnouncement(announceText, activeVoiceId);
+        }, 1100);
       }
     };
 
@@ -179,6 +206,8 @@ export default function LuckyDraw({ participants, onAwardPrize }) {
   const candidateTeam = currentCandidate
     ? TEAM_COLORS.find((t) => t.id === currentCandidate.teamColor)
     : null;
+
+  const currentVoiceObj = AI_VOICES.find((v) => v.id === activeVoiceId) || AI_VOICES[0];
 
   return (
     <div
@@ -209,6 +238,9 @@ export default function LuckyDraw({ participants, onAwardPrize }) {
                 KIOSK FULLSCREEN ON
               </span>
             )}
+            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[10px] font-mono font-bold">
+              AI TTS: {currentVoiceObj.name}
+            </span>
           </div>
           <h2
             className={`font-black tracking-tight ${
@@ -222,7 +254,7 @@ export default function LuckyDraw({ participants, onAwardPrize }) {
           <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
             {isFullscreen
               ? 'โหมดโปรเจกเตอร์เวทีหลัก • ควบคุมด้วยปุ่ม [Spacebar] เพื่อสุ่ม | กด [Esc] หรือ [F] เพื่อย่อจอ'
-              : 'สำหรับแสดงผลขึ้นจอโปรเจกเตอร์หลัก ระบบจะคัดกรองผู้ที่เคยได้รับรางวัลแล้วออกโดยอัตโนมัติ'}
+              : 'สำหรับแสดงผลขึ้นจอโปรเจกเตอร์หลัก พร้อมระบบขานชื่อผู้ชนะอัตโนมัติออกลำโพง'}
           </p>
         </div>
 
@@ -262,21 +294,22 @@ export default function LuckyDraw({ participants, onAwardPrize }) {
         </div>
       )}
 
-      {/* 2. Control Card: Prize & Filter */}
+      {/* 2. Control Cards: Prize, Filter, and 10 AI Voice Selector */}
       <div
-        className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${
-          isFullscreen ? 'max-w-4xl mx-auto w-full' : ''
+        className={`grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 ${
+          isFullscreen ? 'max-w-5xl mx-auto w-full' : ''
         }`}
       >
+        {/* Card 1: Prize */}
         <div
-          className={`p-4 sm:p-5 rounded-2xl border shadow-xs space-y-1.5 transition-colors ${
+          className={`p-4 rounded-2xl border shadow-xs space-y-1.5 transition-colors ${
             isFullscreen
               ? 'bg-zinc-900/80 border-amber-500/20'
               : 'bg-white dark:bg-zinc-900/90 border-zinc-200/80 dark:border-zinc-800'
           }`}
         >
           <label className="text-xs font-bold text-zinc-400 block">
-            เลือกรายการของรางวัล:
+            1. เลือกรายการของรางวัล:
           </label>
           <select
             disabled={isSpinning}
@@ -285,7 +318,7 @@ export default function LuckyDraw({ participants, onAwardPrize }) {
               const f = DEFAULT_PRIZES.find((p) => p.id === e.target.value);
               if (f) setSelectedPrize(f);
             }}
-            className={`w-full border rounded-xl p-3 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+            className={`w-full border rounded-xl p-2.5 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 ${
               isFullscreen
                 ? 'bg-zinc-950 text-white border-zinc-700'
                 : 'bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100'
@@ -299,37 +332,88 @@ export default function LuckyDraw({ participants, onAwardPrize }) {
           </select>
         </div>
 
+        {/* Card 2: Filter */}
         <div
-          className={`p-4 sm:p-5 rounded-2xl border shadow-xs space-y-1.5 transition-colors ${
+          className={`p-4 rounded-2xl border shadow-xs space-y-1.5 transition-colors ${
             isFullscreen
               ? 'bg-zinc-900/80 border-amber-500/20'
               : 'bg-white dark:bg-zinc-900/90 border-zinc-200/80 dark:border-zinc-800'
           }`}
         >
           <label className="text-xs font-bold text-zinc-400 block">
-            กลุ่มผู้มีสิทธิ์ลุ้นรางวัล:
+            2. กลุ่มผู้มีสิทธิ์ลุ้นรางวัล:
           </label>
           <select
             disabled={isSpinning}
             value={filterMode}
             onChange={(e) => setFilterMode(e.target.value)}
-            className={`w-full border rounded-xl p-3 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+            className={`w-full border rounded-xl p-2.5 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 ${
               isFullscreen
                 ? 'bg-zinc-950 text-white border-zinc-700'
                 : 'bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100'
             }`}
           >
             <option value="all">
-              ผู้ร่วมงานทั้งหมดที่ยังไม่ได้รับรางวัล ({participants.filter((p) => !p.wonPrize).length} ท่าน)
+              ผู้ร่วมงานที่ยังไม่ได้รางวัล ({participants.filter((p) => !p.wonPrize).length} ท่าน)
             </option>
             <option value="contestants">
-              เฉพาะผู้ลงทะเบียนประกวดชุดงานค่ำ (
+              เฉพาะผู้ประกวดชุดงานค่ำ (
               {participants.filter((p) => !p.wonPrize && p.joinEveningContest === 'yes').length} ท่าน)
             </option>
             <option value="high-score">
-              เฉพาะผู้มีคะแนนสะสม 50 แต้มขึ้นไป (
+              ผู้มีคะแนน 50 แต้มขึ้นไป (
               {participants.filter((p) => !p.wonPrize && (p.score || 0) >= 50).length} ท่าน)
             </option>
+          </select>
+        </div>
+
+        {/* Card 3: 10 AI Voice Models Selector */}
+        <div
+          className={`p-4 rounded-2xl border shadow-xs space-y-1.5 transition-colors ${
+            isFullscreen
+              ? 'bg-zinc-900/80 border-amber-500/20'
+              : 'bg-white dark:bg-zinc-900/90 border-zinc-200/80 dark:border-zinc-800'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-zinc-400 block">
+              3. เสียงสปีกเกอร์ AI ขานรางวัล:
+            </label>
+            <button
+              type="button"
+              onClick={() => handleTestVoice(activeVoiceId)}
+              className="text-[11px] font-bold text-amber-500 hover:text-amber-400 transition-colors flex items-center gap-1 cursor-pointer"
+              title="ทดสอบฟังตัวอย่างเสียงที่เลือก"
+            >
+              <Volume2Icon className={`w-3.5 h-3.5 ${isPlayingTestVoice ? 'animate-bounce text-emerald-400' : ''}`} />
+              <span>{isPlayingTestVoice ? 'กำลังทดสอบ...' : '▶️ ทดสอบเสียง'}</span>
+            </button>
+          </div>
+
+          <select
+            disabled={isSpinning}
+            value={activeVoiceId}
+            onChange={(e) => handleVoiceChange(e.target.value)}
+            className={`w-full border rounded-xl p-2.5 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+              isFullscreen
+                ? 'bg-zinc-950 text-white border-zinc-700'
+                : 'bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100'
+            }`}
+          >
+            <optgroup label="🌟 Google Gemini AI Models">
+              {AI_VOICES.filter((v) => v.tag === 'Gemini AI').map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.name} • {v.desc.split(' ')[0]}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="🎤 สปีกเกอร์เวที & ดีเจ">
+              {AI_VOICES.filter((v) => v.tag !== 'Gemini AI').map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.name} • {v.desc.split(' ')[0]}
+                </option>
+              ))}
+            </optgroup>
           </select>
         </div>
       </div>
@@ -375,10 +459,12 @@ export default function LuckyDraw({ participants, onAwardPrize }) {
               </span>
             )}
             {spinPhase === 'revealed' && (
-              <span className="inline-flex items-center gap-2 text-sm sm:text-base text-emerald-400 font-black uppercase tracking-wider animate-bounce">
-                <CheckCircleIcon className="w-5 h-5" />
-                <span>🎉 ขอแสดงความยินดีกับผู้ได้รับรางวัล! 🎉</span>
-              </span>
+              <div className="space-y-1 animate-bounce">
+                <span className="inline-flex items-center gap-2 text-sm sm:text-base text-emerald-400 font-black uppercase tracking-wider">
+                  <CheckCircleIcon className="w-5 h-5" />
+                  <span>🎉 ขอแสดงความยินดีกับผู้ได้รับรางวัล! 🎉</span>
+                </span>
+              </div>
             )}
           </div>
 
@@ -416,6 +502,26 @@ export default function LuckyDraw({ participants, onAwardPrize }) {
                   {currentCandidate.busNumber}
                 </span>
               </div>
+
+              {/* Speaker Replay Button when winner is revealed */}
+              {winner && (
+                <div className="pt-3 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      speakAnnouncement(
+                        `ขอแสดงความยินดีกับคุณ ${winner.name} รหัสพนักงาน ${winner.id} ได้รับรางวัล ${selectedPrize.name} ค่ะ`,
+                        activeVoiceId
+                      )
+                    }
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs sm:text-sm font-bold transition-all shadow-xs active:scale-95 cursor-pointer"
+                    title="คลิกเพื่อขานชื่อผู้ชนะออกลำโพงอีกครั้ง"
+                  >
+                    <Volume2Icon className="w-4 h-4 text-amber-400" />
+                    <span>ขานชื่อซ้ำออกลำโพง ({currentVoiceObj.name})</span>
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="py-8 text-center text-zinc-400 space-y-3">
@@ -424,6 +530,9 @@ export default function LuckyDraw({ participants, onAwardPrize }) {
               </div>
               <p className="text-sm sm:text-base font-bold text-zinc-300">
                 กดปุ่มด้านล่าง หรือกดแป้น [Spacebar] เพื่อเริ่มสุ่มรายชื่อ
+              </p>
+              <p className="text-xs text-zinc-500">
+                ระบบจะขานชื่อและรหัสพนักงานของผู้ได้รับรางวัลออกลำโพงโดยอัตโนมัติ
               </p>
             </div>
           )}
@@ -490,6 +599,20 @@ export default function LuckyDraw({ participants, onAwardPrize }) {
                     <span>{w.wonPrizeName}</span>
                   </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    speakAnnouncement(
+                      `ขอแสดงความยินดีกับคุณ ${w.name} รหัสพนักงาน ${w.id} ได้รับรางวัล ${w.wonPrizeName} ค่ะ`,
+                      activeVoiceId
+                    )
+                  }
+                  className="p-1.5 rounded-lg text-zinc-400 hover:text-amber-400 hover:bg-zinc-800 transition-colors"
+                  title="ขานชื่อผู้ได้รับรางวัลท่านนี้"
+                >
+                  <Volume2Icon className="w-4 h-4" />
+                </button>
               </div>
             ))}
           </div>
